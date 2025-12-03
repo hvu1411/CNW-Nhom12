@@ -47,7 +47,6 @@ onlinecourse/
 │   └── Database.php
 ├── .htaccess          # Cấu hình Apache
 ├── index.php          # Entry point
-├── database.sql       # File SQL tạo database
 └── README.md          # File này
 
 ```
