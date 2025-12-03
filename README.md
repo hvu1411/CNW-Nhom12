@@ -104,27 +104,27 @@ onlinecourse/
 ## Chức năng chính
 
 ### Chức năng Học viên (role = 0)
-- ✅ Xem danh sách khóa học
-- ✅ Tìm kiếm và lọc khóa học theo danh mục
-- ✅ Xem chi tiết khóa học
-- ✅ Đăng ký khóa học
-- ✅ Xem khóa học đã đăng ký
-- ✅ Theo dõi tiến độ học tập
-- ✅ Xem bài học và tài liệu
+-  Xem danh sách khóa học
+-  Tìm kiếm và lọc khóa học theo danh mục
+-  Xem chi tiết khóa học
+-  Đăng ký khóa học
+-  Xem khóa học đã đăng ký
+-  Theo dõi tiến độ học tập
+-  Xem bài học và tài liệu
 
 ### Chức năng Giảng viên (role = 1)
-- ✅ Đăng nhập/đăng xuất
-- ✅ Tạo, chỉnh sửa, xóa khóa học
-- ✅ Quản lý bài học (tạo, sửa, xóa)
-- ✅ Đăng tải tài liệu học tập
-- ✅ Xem danh sách học viên đã đăng ký
-- ✅ Theo dõi tiến độ của từng học viên
+-  Đăng nhập/đăng xuất
+-  Tạo, chỉnh sửa, xóa khóa học
+-  Quản lý bài học (tạo, sửa, xóa)
+-  Đăng tải tài liệu học tập
+-  Xem danh sách học viên đã đăng ký
+-  Theo dõi tiến độ của từng học viên
 
 ### Chức năng Quản trị viên (role = 2)
-- ✅ Quản lý người dùng (xem, xóa)
-- ✅ Quản lý danh mục khóa học (tạo, sửa, xóa)
-- ✅ Xem thống kê sử dụng hệ thống
-- ✅ Xem danh sách tất cả khóa học
+-  Quản lý người dùng (xem, xóa)
+-  Quản lý danh mục khóa học (tạo, sửa, xóa)
+-  Xem thống kê sử dụng hệ thống
+-  Xem danh sách tất cả khóa học
 
 ## Bảo mật
 
