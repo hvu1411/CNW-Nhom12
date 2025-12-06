@@ -1,72 +1,130 @@
 <?php
-/**
- * Controller Lesson - Xử lý bài học
- */
-class LessonController
-{
-    private $db;
-    
+class LessonController {
+    private $lessonModel;
+    private $courseModel;
     public function __construct($db)
     {
-        $this->db = $db;
+        session_start();
+        $this->ensureInstructor();
+        $this->lessonModel = new Lesson($db);
+        $this->courseModel = new Course($db);
     }
-    
-    /**
-     * Xem bài học
-     */
-    public function view()
+
+    // Kiểm tra người dùng hiện tại có phải giảng viên không (role = 1)
+    private function ensureInstructor()
     {
-        // Kiểm tra đăng nhập
-        if (!isset($_SESSION['đã_đăng_nhập'])) {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] != 1) {
             header('Location: index.php?controller=auth&action=login');
-            exit();
+            exit;
         }
-        
-        $lesson_id = $_GET['id'] ?? null;
-        
-        if (!$lesson_id) {
-            header('Location: index.php');
-            exit();
+    }
+
+    private function sanitize($data)
+    {
+        if (is_array($data)) {
+            return array_map([$this, 'sanitize'], $data);
         }
-        
-        require_once 'models/Lesson.php';
-        require_once 'models/Material.php';
-        require_once 'models/Course.php';
-        require_once 'models/Enrollment.php';
-        
-        $lessonModel = new Lesson($this->db);
-        $materialModel = new Material($this->db);
-        $courseModel = new Course($this->db);
-        $enrollmentModel = new Enrollment($this->db);
-        
-        $bài_học = $lessonModel->lấyTheoId($lesson_id);
-        
-        if (!$bài_học) {
-            header('Location: index.php');
-            exit();
+        return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+    }
+
+    // Đảm bảo khóa học thuộc về giảng viên hiện tại
+    // Nếu không phải, chuyển về danh sách khóa học
+    private function ensureCourseOwner($courseId)
+    {
+        $course = $this->courseModel->getCourse($courseId);
+        if (!$course || $course['instructor_id'] != $_SESSION['user_id']) {
+            header('Location: index.php?controller=course&action=list');
+            exit;
         }
-        
-        $khóa_học = $courseModel->lấyTheoId($bài_học['course_id']);
-        $danh_sách_tài_liệu = $materialModel->lấyTheoBàiHọc($lesson_id);
-        $danh_sách_bài_học = $lessonModel->lấyTheoKhóaHọc($bài_học['course_id']);
-        
-        // Kiểm tra quyền truy cập (học viên phải đăng ký khóa học hoặc là giảng viên của khóa học)
-        $có_quyền_truy_cập = false;
-        
-        if ($_SESSION['role'] == 0) { // Học viên
-            $có_quyền_truy_cập = $enrollmentModel->kiểmTraĐãĐăngKý($bài_học['course_id'], $_SESSION['user_id']);
-        } elseif ($_SESSION['role'] == 1) { // Giảng viên
-            $có_quyền_truy_cập = ($khóa_học['instructor_id'] == $_SESSION['user_id']);
-        } elseif ($_SESSION['role'] == 2) { // Admin
-            $có_quyền_truy_cập = true;
+        return $course;
+    }
+
+    // Hiển thị danh sách bài học của một khóa học
+    public function manage()
+    {
+        $courseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
+        $course = $this->ensureCourseOwner($courseId);
+        $lessons = $this->lessonModel->getLessonsByCourse($courseId);
+        include 'views/lessons/manage.php';
+    }
+
+    public function create()
+    {
+        $courseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
+        $course = $this->ensureCourseOwner($courseId);
+        $errors = [];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $post = $this->sanitize($_POST);
+            if (empty($post['title'])) {
+                $errors[] = 'Tiêu đề không được để trống';
+            }
+
+            if (empty($errors)) {
+                $data = [
+                    'course_id' => $courseId,
+                    'title'     => $post['title'],
+                    'content'   => $post['content'] ?? '',
+                    'video_url' => $post['video_url'] ?? '',
+                    'order'     => $post['order'] ?? 1
+                ];
+                $this->lessonModel->createLesson($data);
+                header('Location: index.php?controller=lesson&action=manage&course_id=' . $courseId);
+                exit;
+            }
         }
-        
-        if (!$có_quyền_truy_cập) {
-            $_SESSION['lỗi'] = 'Bạn không có quyền xem bài học này!';
-            header('Location: index.php?controller=course&action=detail&id=' . $bài_học['course_id']);
-            exit();
+
+        include 'views/lessons/create.php';
+    }
+
+    public function edit()
+    {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $lesson = $this->lessonModel->getLesson($id);
+        if (!$lesson) {
+            header('Location: index.php?controller=course&action=list');
+            exit;
         }
-        
-        require_once 'views/student/lesson_view.php';
+
+        $course   = $this->ensureCourseOwner($lesson['course_id']);
+        $courseId = $course['id'];
+
+        $errors = [];
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $post = $this->sanitize($_POST);
+            if (empty($post['title'])) {
+                $errors[] = 'Tiêu đề không được để trống';
+            }
+
+            if (empty($errors)) {
+                $data = [
+                    'course_id' => $courseId,
+                    'title'     => $post['title'],
+                    'content'   => $post['content'] ?? '',
+                    'video_url' => $post['video_url'] ?? '',
+                    'order'     => $post['order'] ?? 1
+                ];
+                $this->lessonModel->updateLesson($id, $data);
+                header('Location: index.php?controller=lesson&action=manage&course_id=' . $courseId);
+                exit;
+            }
+        }
+
+        include 'views/lessons/edit.php';
+    }
+
+    public function delete()
+    {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $lesson = $this->lessonModel->getLesson($id);
+        if (!$lesson) {
+            header('Location: index.php?controller=course&action=list');
+            exit;
+        }
+
+        $course = $this->ensureCourseOwner($lesson['course_id']);
+        $this->lessonModel->deleteLesson($id, $course['id']);
+        header('Location: index.php?controller=lesson&action=manage&course_id=' . $course['id']);
+        exit;
     }
 }
