@@ -135,41 +135,7 @@ include 'views/layouts/header.php';
 </div>
 
 <style>
-.profile-container {
-    max-width: 800px;
-    margin: 2rem auto;
-}
-
-.upload-section {
-    margin: 2rem 0;
-    padding: 2rem;
-    background: rgba(52, 152, 219, 0.05);
-    border-radius: 8px;
-}
-
-.upload-section h3 {
-    margin-bottom: 1rem;
-    color: #2c3e50;
-}
-
-.update-profile-section,
-.password-section {
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    border: 1px solid #eee;
-}
-
-.update-profile-section h3,
-.password-section h3 {
-    margin-bottom: 1rem;
-    color: #2c3e50;
-}
-
-.form-group small {
-    display: block;
-    margin-top: 0.25rem;
-}
+/* Styles now in main CSS file */
 </style>
 
 <?php include 'views/layouts/footer.php'; ?>
