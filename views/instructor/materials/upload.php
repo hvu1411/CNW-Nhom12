@@ -1,6 +1,15 @@
 <?php
-$tiêu_đề = "Tải lên tài liệu - Hệ thống Quản lý Khóa học Online";
+/**
+ * Trang Upload Tài Liệu - Giảng viên
+ * Chức năng: Upload file PDF, DOC, DOCX, PPT, PPTX cho bài học
+ */
+
+$tiêu_đề = "Tải lên tài liệu";
 require_once 'views/layouts/header.php';
+
+// Lấy lesson_id từ URL
+$lesson_id = $_GET['lesson_id'] ?? '';
+$course_id = $khóa_học['id'] ?? '';
 ?>
 
 <div class="container">
@@ -8,122 +17,95 @@ require_once 'views/layouts/header.php';
         <?php require_once 'views/layouts/sidebar.php'; ?>
         
         <div class="content">
-            <h1>Tải lên tài liệu học tập</h1>
+            <h1>📚 Tải lên tài liệu học tập</h1>
             
-            <div class="upload-material-container">
-                <!-- Upload Area -->
-                <form id="material-upload-form" method="POST" action="index.php?controller=instructor&action=upload_material&lesson_id=<?php echo $_GET['lesson_id']; ?>" enctype="multipart/form-data" onsubmit="return validateUploadForm('material-upload-form')">
-                    
-                    <div class="form-group">
-                        <label for="title">Tiêu đề tài liệu: <span style="color: red;">*</span></label>
-                        <input type="text" id="title" name="title" required class="form-control" placeholder="Nhập tiêu đề tài liệu">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Mô tả:</label>
-                        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Mô tả ngắn về tài liệu này"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Chọn file tài liệu: <span style="color: red;">*</span></label>
-                        <div class="upload-area" id="material-upload-area">
-                            <div class="upload-icon">📚</div>
-                            <p class="upload-text">Kéo thả file vào đây hoặc click để chọn</p>
-                            <p style="font-size: 0.9rem; color: #999;">
-                                Định dạng: PDF, DOC, DOCX, PPT, PPTX (Max: 10MB)
-                            </p>
-                            <input type="file" id="material-input" name="material_file" accept=".pdf,.doc,.docx,.ppt,.pptx" onchange="previewMaterial(this)" style="display: none;" required>
-                        </div>
-                        
-                        <div id="file-info" class="file-info" style="display: none;"></div>
-                    </div>
-                    
-                    <div class="progress-bar" id="material-progress" style="display: none;">
-                        <div class="progress-fill" style="width: 0%;">0%</div>
-                    </div>
-                    
-                    <div class="form-actions" style="margin-top: 2rem; display: flex; gap: 1rem;">
-                        <button type="submit" class="btn btn-success">
-                            📤 Tải lên tài liệu
-                        </button>
-                        <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $khóa_học['id'] ?? ''; ?>" class="btn btn-secondary">
-                            ❌ Hủy
-                        </a>
-                    </div>
-                </form>
+            <!-- Form Upload -->
+            <form id="material-upload-form" 
+                  method="POST" 
+                  action="index.php?controller=instructor&action=upload_material&lesson_id=<?= $lesson_id ?>" 
+                  enctype="multipart/form-data"
+                  class="upload-form">
                 
-                <!-- List of existing materials -->
-                <?php if (isset($tài_liệu_hiện_có) && !empty($tài_liệu_hiện_có)): ?>
-                <div class="existing-materials" style="margin-top: 3rem;">
-                    <h3>Tài liệu đã tải lên</h3>
-                    <ul class="material-list">
-                        <?php foreach ($tài_liệu_hiện_có as $tài_liệu): ?>
-                        <li class="material-item">
-                            <div style="display: flex; align-items: center;">
-                                <span class="material-icon"><?php echo getFileIcon($tài_liệu['filename']); ?></span>
-                                <div class="material-info">
-                                    <div class="material-name"><?php echo htmlspecialchars($tài_liệu['filename']); ?></div>
-                                    <div class="material-meta">
-                                        Tải lên: <?php echo date('d/m/Y H:i', strtotime($tài_liệu['uploaded_at'])); ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="material-actions">
-                                <a href="assets/uploads/materials/<?php echo htmlspecialchars($tài_liệu['file_path']); ?>" class="btn btn-small btn-primary" download>
-                                    ⬇️ Tải về
-                                </a>
-                                <a href="index.php?controller=instructor&action=delete_material&id=<?php echo $tài_liệu['id']; ?>" 
-                                   class="btn btn-small btn-danger" 
-                                   onclick="return xácNhậnXóa('Bạn có chắc muốn xóa tài liệu này?')">
-                                    🗑️ Xóa
-                                </a>
-                            </div>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
+                <!-- Tiêu đề -->
+                <div class="form-group">
+                    <label for="title">Tiêu đề tài liệu <span class="required">*</span></label>
+                    <input type="text" id="title" name="title" class="form-control" 
+                           placeholder="VD: Slide bài giảng Chương 1" required>
                 </div>
-                <?php endif; ?>
+                
+                <!-- Mô tả -->
+                <div class="form-group">
+                    <label for="description">Mô tả</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" 
+                              placeholder="Mô tả ngắn về tài liệu (không bắt buộc)"></textarea>
+                </div>
+                
+                <!-- Vùng Upload -->
+                <div class="form-group">
+                    <label>Chọn file <span class="required">*</span></label>
+                    <div class="upload-area" id="material-upload-area">
+                        <div class="upload-icon">📂</div>
+                        <p class="upload-text">Kéo thả file hoặc <strong>click để chọn</strong></p>
+                        <p class="upload-hint">PDF, DOC, DOCX, PPT, PPTX • Tối đa 10MB</p>
+                        <input type="file" id="material-input" name="material_file" 
+                               accept=".pdf,.doc,.docx,.ppt,.pptx" 
+                               onchange="previewMaterial(this)" hidden required>
+                    </div>
+                    <div id="file-info" class="file-info"></div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress-bar" id="material-progress">
+                    <div class="progress-fill">0%</div>
+                </div>
+                
+                <!-- Nút Bấm -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">📤 Tải lên</button>
+                    <a href="index.php?controller=instructor&action=manage_course&id=<?= $course_id ?>" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+            
+            <!-- Danh sách tài liệu đã upload -->
+            <?php if (!empty($tài_liệu_hiện_có)): ?>
+            <div class="material-section">
+                <h2>📁 Tài liệu đã tải lên</h2>
+                <ul class="material-list">
+                    <?php foreach ($tài_liệu_hiện_có as $tl): ?>
+                    <li class="material-item">
+                        <div class="material-info">
+                            <span class="material-icon"><?= getFileIconPHP($tl['filename']) ?></span>
+                            <div>
+                                <div class="material-name"><?= htmlspecialchars($tl['filename']) ?></div>
+                                <div class="material-meta"><?= date('d/m/Y H:i', strtotime($tl['uploaded_at'])) ?></div>
+                            </div>
+                        </div>
+                        <div class="material-actions">
+                            <a href="assets/uploads/materials/<?= htmlspecialchars($tl['file_path']) ?>" class="btn btn-small" download>⬇️ Tải</a>
+                            <a href="index.php?controller=instructor&action=delete_material&id=<?= $tl['id'] ?>" 
+                               class="btn btn-small btn-danger" 
+                               onclick="return confirm('Xóa tài liệu này?')">🗑️</a>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
-<style>
-.upload-material-container {
-    max-width: 800px;
+<?php
+// Hàm lấy icon theo loại file
+function getFileIconPHP($filename) {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $icons = [
+        'pdf' => '📄',
+        'doc' => '📝', 'docx' => '📝',
+        'ppt' => '📊', 'pptx' => '📊'
+    ];
+    return $icons[$ext] ?? '📎';
 }
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-start;
-}
-
-.existing-materials {
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    border: 1px solid #eee;
-}
-
-.existing-materials h3 {
-    margin-bottom: 1.5rem;
-    color: #2c3e50;
-}
-</style>
-
-<script>
-function getFileIcon(filename) {
-    const ext = filename.split('.').pop().toLowerCase();
-    const icons = {
-        'pdf': '📄',
-        'doc': '📝',
-        'docx': '📝',
-        'ppt': '📊',
-        'pptx': '📊'
-    };
-    return icons[ext] || '📎';
-}
-</script>
+?>
 
 <?php require_once 'views/layouts/footer.php'; ?>
