@@ -1,94 +1,42 @@
 <?php
-/**
- * Model Material - Quản lý tài liệu học tập
- */
-class Material
-{
-    // Kết nối cơ sở dữ liệu
-    private $kết_nối;
-    private $tên_bảng = 'materials';
-    
-    // Thuộc tính của material
-    public $id;
-    public $lesson_id;
-    public $filename;
-    public $file_path;
-    public $file_type;
-    public $uploaded_at;
-    
-    /**
-     * Constructor
-     */
+class Material {
+    private $db;
+
     public function __construct($db)
     {
-        $this->kết_nối = $db;
+        $this->db = $db;
     }
-    
-    /**
-     * Tải lên tài liệu mới
-     */
-    public function tảiLên()
+
+    public function createMaterial($lessonId, $filename, $filePath, $fileType)
     {
-        $câu_truy_vấn = "INSERT INTO " . $this->tên_bảng . " 
-                        (lesson_id, filename, file_path, file_type) 
-                        VALUES (:lesson_id, :filename, :file_path, :file_type)";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        
-        $stmt->bindParam(':lesson_id', $this->lesson_id);
-        $stmt->bindParam(':filename', $this->filename);
-        $stmt->bindParam(':file_path', $this->file_path);
-        $stmt->bindParam(':file_type', $this->file_type);
-        
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        $stmt = $this->db->prepare("
+            INSERT INTO materials (lesson_id, filename, file_path, file_type, uploaded_at)
+            VALUES (?, ?, ?, ?, NOW())
+        ");
+
+        return $stmt->execute([
+            (int)$lessonId, 
+            $filename,
+            $filePath,
+            $fileType
+        ]);
     }
-    
-    /**
-     * Lấy tài liệu theo bài học
-     */
-    public function lấyTheoBàiHọc($lesson_id)
+
+    public function getMaterialsByLesson($lessonId)
     {
-        $câu_truy_vấn = "SELECT * FROM " . $this->tên_bảng . " 
-                        WHERE lesson_id = :lesson_id 
-                        ORDER BY uploaded_at DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':lesson_id', $lesson_id);
-        $stmt->execute();
-        
-        return $stmt->fetchAll();
+        $stmt = $this->db->prepare("
+            SELECT * FROM materials
+            WHERE lesson_id = ?
+            ORDER BY uploaded_at DESC
+        ");
+
+        $stmt->execute([(int)$lessonId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    /**
-     * Lấy tài liệu theo ID
-     */
-    public function lấyTheoId($id)
+    public function deleteMaterial($id)
     {
-        $câu_truy_vấn = "SELECT * FROM " . $this->tên_bảng . " WHERE id = :id LIMIT 1";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-        
-        return $stmt->fetch();
-    }
-    
-    /**
-     * Xóa tài liệu
-     */
-    public function xóa($id)
-    {
-        $câu_truy_vấn = "DELETE FROM " . $this->tên_bảng . " WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':id', $id);
-        
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        $stmt = $this->db->prepare("DELETE FROM materials WHERE id = ?");
+        return $stmt->execute([(int)$id]);
     }
 }
