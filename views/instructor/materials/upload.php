@@ -1,42 +1,41 @@
-<?php
-$tiêu_đề = "Tải lên tài liệu - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Tải tài liệu cho bài học: <?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
-<div class="container">
-    <div class="dashboard">
-        <?php require_once 'views/layouts/sidebar.php'; ?>
-        
-        <div class="content">
-            <h1>Tải lên tài liệu học tập</h1>
-            
-            <form method="POST" action="index.php?controller=instructor&action=upload_material&lesson_id=<?php echo $_GET['lesson_id']; ?>">
-                <div class="form-group">
-                    <label for="filename">Tên file:</label>
-                    <input type="text" id="filename" name="filename" required class="form-control" placeholder="example.pdf">
-                </div>
-                
-                <div class="form-group">
-                    <label for="file_path">Đường dẫn file:</label>
-                    <input type="text" id="file_path" name="file_path" required class="form-control" placeholder="materials/lesson1/example.pdf">
-                </div>
-                
-                <div class="form-group">
-                    <label for="file_type">Loại file:</label>
-                    <select id="file_type" name="file_type" class="form-control">
-                        <option value="pdf">PDF</option>
-                        <option value="doc">DOC</option>
-                        <option value="ppt">PPT</option>
-                        <option value="zip">ZIP</option>
-                        <option value="other">Khác</option>
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn btn-success">Tải lên</button>
-                <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $khóa_học['id'] ?? ''; ?>" class="btn btn-secondary">Hủy</a>
-            </form>
-        </div>
-    </div>
-</div>
+<?php if (!empty($errors)): ?>
+<ul style="color:red;">
+    <?php foreach ($errors as $e): ?>
+        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+    <?php endforeach; ?>
+</ul>
+<?php endif; ?>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php if (!empty($success)): ?>
+<p style="color:green;"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></p>
+<?php endif; ?>
+
+<form method="post" enctype="multipart/form-data">
+    <label>Chọn file (pdf, doc, ppt...):</label><br>
+    <input type="file" name="file" required><br><br>
+    <button type="submit">Upload</button>
+</form>
+
+<h3>Tài liệu đã tải lên</h3>
+<?php if (!empty($materials)): ?>
+<ul>
+    <?php foreach ($materials as $m): ?>
+        <li>
+            <a href="<?= htmlspecialchars($m['file_path'], ENT_QUOTES, 'UTF-8') ?>" target="_blank">
+                <?= htmlspecialchars($m['filename'], ENT_QUOTES, 'UTF-8') ?>
+            </a>
+            (<?= htmlspecialchars($m['file_type'], ENT_QUOTES, 'UTF-8') ?>)
+        </li>
+    <?php endforeach; ?>
+</ul>
+<?php else: ?>
+<p>Chưa có tài liệu nào.</p>
+<?php endif; ?>
+
+<p>
+    <a href="index.php?controller=lesson&action=manage&course_id=<?= (int)$course['id'] ?>">
+        ← Quay lại danh sách bài học
+    </a>
+</p>

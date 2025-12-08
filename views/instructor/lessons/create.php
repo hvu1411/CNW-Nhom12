@@ -1,41 +1,29 @@
-<?php
-$tiêu_đề = "Tạo bài học - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Thêm bài học mới cho khóa: <?= htmlspecialchars($course['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
-<div class="container">
-    <div class="dashboard">
-        <?php require_once 'views/layouts/sidebar.php'; ?>
-        
-        <div class="content">
-            <h1>Tạo bài học mới</h1>
-            
-            <form method="POST" action="index.php?controller=instructor&action=create_lesson&course_id=<?php echo $_GET['course_id']; ?>">
-                <div class="form-group">
-                    <label for="title">Tên bài học:</label>
-                    <input type="text" id="title" name="title" required class="form-control">
-                </div>
-                
-                <div class="form-group">
-                    <label for="content">Nội dung:</label>
-                    <textarea id="content" name="content" rows="6" required class="form-control"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="video_url">Video URL:</label>
-                    <input type="url" id="video_url" name="video_url" placeholder="https://youtube.com/..." class="form-control">
-                </div>
-                
-                <div class="form-group">
-                    <label for="order">Thứ tự:</label>
-                    <input type="number" id="order" name="order" min="1" value="1" class="form-control">
-                </div>
-                
-                <button type="submit" class="btn btn-success">Tạo bài học</button>
-                <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $_GET['course_id']; ?>" class="btn btn-secondary">Hủy</a>
-            </form>
-        </div>
-    </div>
-</div>
+<?php if (!empty($errors)): ?>
+<ul style="color:red;">
+    <?php foreach ($errors as $e): ?>
+        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+    <?php endforeach; ?>
+</ul>
+<?php endif; ?>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<form method="post">
+    <label>Tiêu đề:</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>Thứ tự:</label><br>
+    <input type="number" name="order" value="1" min="1"><br><br>
+
+    <label>Video URL:</label><br>
+    <input type="text" name="video_url"><br><br>
+
+    <label>Nội dung:</label><br>
+    <textarea name="content" rows="6" cols="60"></textarea><br><br>
+
+    <button type="submit">Lưu</button>
+</form>
+
+<p>
+    <a href="index.php?controller=lesson&action=manage&course_id=<?= (int)$course['id'] ?>">← Quay lại danh sách bài học</a>
+</p>

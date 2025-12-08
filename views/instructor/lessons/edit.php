@@ -1,45 +1,31 @@
-<?php
-$tiêu_đề = "Chỉnh sửa bài học - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Sửa bài học: <?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
-<div class="container">
-    <div class="dashboard">
-        <?php require_once 'views/layouts/sidebar.php'; ?>
-        
-        <div class="content">
-            <h1>Chỉnh sửa bài học</h1>
-            
-            <?php if ($bài_học): ?>
-                <form method="POST" action="index.php?controller=instructor&action=edit_lesson&id=<?php echo $bài_học['id']; ?>">
-                    <div class="form-group">
-                        <label for="title">Tên bài học:</label>
-                        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($bài_học['title']); ?>" required class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="content">Nội dung:</label>
-                        <textarea id="content" name="content" rows="6" required class="form-control"><?php echo htmlspecialchars($bài_học['content']); ?></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="video_url">Video URL:</label>
-                        <input type="url" id="video_url" name="video_url" value="<?php echo htmlspecialchars($bài_học['video_url']); ?>" placeholder="https://youtube.com/..." class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="order">Thứ tự:</label>
-                        <input type="number" id="order" name="order" min="1" value="<?php echo $bài_học['order']; ?>" class="form-control">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-success">Cập nhật</button>
-                    <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $bài_học['course_id']; ?>" class="btn btn-secondary">Hủy</a>
-                </form>
-            <?php else: ?>
-                <p>Không tìm thấy bài học.</p>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+<?php if (!empty($errors)): ?>
+<ul style="color:red;">
+    <?php foreach ($errors as $e): ?>
+        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
+    <?php endforeach; ?>
+</ul>
+<?php endif; ?>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<form method="post">
+    <label>Tiêu đề:</label><br>
+    <input type="text" name="title" 
+           value="<?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?>" required><br><br>
+
+    <label>Thứ tự:</label><br>
+    <input type="number" name="order" value="<?= (int)$lesson['order'] ?>" min="1"><br><br>
+
+    <label>Video URL:</label><br>
+    <input type="text" name="video_url" 
+           value="<?= htmlspecialchars($lesson['video_url'], ENT_QUOTES, 'UTF-8') ?>"><br><br>
+
+    <label>Nội dung:</label><br>
+    <textarea name="content" rows="6" cols="60"><?= htmlspecialchars($lesson['content'], ENT_QUOTES, 'UTF-8') ?></textarea><br><br>
+
+    <button type="submit">Cập nhật</button>
+</form>
+
+<p>
+    <a href="index.php?controller=lesson&action=manage&course_id=<?= (int)$course['id'] ?>">← Quay lại danh sách bài học</a>
+</p>
