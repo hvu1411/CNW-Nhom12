@@ -2194,3 +2194,419 @@ table .btn-small:hover {
         display: inline-block;
     }
 }
+
+/* ========================================
+   PAGE FLIP ANIMATION - PowerPoint Style
+   Hiệu ứng lật trang như PowerPoint
+   ======================================== */
+
+/* Page Flip Container */
+.page-flip-container {
+    perspective: 2000px;
+    perspective-origin: center center;
+}
+
+/* Page Wrapper */
+.page {
+    transform-style: preserve-3d;
+    animation: pageFlipIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    transform-origin: left center;
+    backface-visibility: hidden;
+}
+
+/* Page Flip In - Lật trang vào */
+@keyframes pageFlipIn {
+    0% {
+        transform: rotateY(-90deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+/* Page Flip Out - Lật trang ra */
+@keyframes pageFlipOut {
+    0% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotateY(90deg);
+        opacity: 0;
+    }
+}
+
+.page-flip-out {
+    animation: pageFlipOut 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Slide Left - Trượt từ phải sang */
+.slide-left {
+    animation: slideLeftIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideLeftIn {
+    0% {
+        transform: translateX(100%) rotateY(-15deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+/* Slide Right - Trượt từ trái sang */
+.slide-right {
+    animation: slideRightIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideRightIn {
+    0% {
+        transform: translateX(-100%) rotateY(15deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+/* Flip Card Effect - Lật thẻ 3D */
+.flip-card {
+    perspective: 1500px;
+    transform-style: preserve-3d;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+}
+
+.flip-card-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #1a0a2e, #2d1b4e);
+    border: 1px solid #ff00ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+/* 3D Book Page Flip - Lật trang sách 3D */
+.book-page {
+    transform-style: preserve-3d;
+    transform-origin: left center;
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        5px 5px 20px rgba(0, 0, 0, 0.4),
+        inset -2px 0 5px rgba(255, 0, 255, 0.1);
+}
+
+.book-page:hover {
+    transform: rotateY(-30deg);
+}
+
+.book-page::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.1));
+    pointer-events: none;
+}
+
+/* Cube Transition - Xoay khối */
+.cube-container {
+    perspective: 2000px;
+    perspective-origin: center center;
+}
+
+.cube-face {
+    transform-style: preserve-3d;
+    animation: cubeRotate 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes cubeRotate {
+    0% {
+        transform: translateZ(-500px) rotateY(-90deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateZ(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+/* Zoom Flip - Phóng to kết hợp lật */
+.zoom-flip {
+    animation: zoomFlipIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes zoomFlipIn {
+    0% {
+        transform: scale(0.5) rotateX(90deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(0.8) rotateX(45deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1) rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+/* Door Open Effect - Mở cửa */
+.door-open {
+    perspective: 1500px;
+}
+
+.door-open .door-panel {
+    transform-origin: left center;
+    animation: doorOpen 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes doorOpen {
+    0% {
+        transform: rotateY(0deg);
+    }
+    100% {
+        transform: rotateY(-105deg);
+    }
+}
+
+/* Stack Cards with Flip - Xếp thẻ với lật */
+.stack-flip {
+    animation: stackFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes stackFlip {
+    0% {
+        transform: translateY(50px) rotateX(-45deg) scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) rotateX(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Neon Page Flip - Lật trang neon */
+.neon-flip {
+    animation: neonFlipIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes neonFlipIn {
+    0% {
+        transform: rotateY(-90deg);
+        opacity: 0;
+        filter: drop-shadow(0 0 0 transparent);
+    }
+    50% {
+        filter: drop-shadow(0 0 30px #ff00ff);
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+        filter: drop-shadow(0 0 10px #ff00ff);
+    }
+}
+
+/* Morph Transition - Mở rộng từ giữa */
+.morph-page {
+    animation: morphIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes morphIn {
+    0% {
+        clip-path: polygon(50% 0%, 50% 0%, 50% 100%, 50% 100%);
+        opacity: 0;
+    }
+    100% {
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        opacity: 1;
+    }
+}
+
+/* Origami Fold - Gấp origami */
+.origami-fold {
+    transform-style: preserve-3d;
+    animation: origamiFold 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes origamiFold {
+    0% {
+        transform: rotateX(-90deg) rotateY(-45deg) scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: rotateX(-45deg) rotateY(-20deg) scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotateX(0deg) rotateY(0deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   ÁP DỤNG HIỆU ỨNG TỰ ĐỘNG
+   ======================================== */
+
+/* Main Content Animation */
+main, .main-content, .content {
+    animation: pageFlipIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    transform-style: preserve-3d;
+}
+
+/* Section Stagger - Hiệu ứng lần lượt cho section */
+section {
+    animation: stackFlip 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+section:nth-child(1) { animation-delay: 0.1s; }
+section:nth-child(2) { animation-delay: 0.2s; }
+section:nth-child(3) { animation-delay: 0.3s; }
+section:nth-child(4) { animation-delay: 0.4s; }
+section:nth-child(5) { animation-delay: 0.5s; }
+
+/* Card Animation - Hiệu ứng cho thẻ khóa học */
+.course-card, .category-card {
+    animation: stackFlip 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+.course-card:nth-child(1) { animation-delay: 0.1s; }
+.course-card:nth-child(2) { animation-delay: 0.2s; }
+.course-card:nth-child(3) { animation-delay: 0.3s; }
+.course-card:nth-child(4) { animation-delay: 0.4s; }
+.course-card:nth-child(5) { animation-delay: 0.5s; }
+.course-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Stats Card Animation */
+.stat-card {
+    animation: zoomFlipIn 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Auth Box Animation */
+.auth-box, .login-container, .register-container {
+    animation: neonFlipIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Dashboard Sidebar Animation */
+.sidebar {
+    animation: slideRightIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Table Row Animation */
+table tbody tr {
+    animation: slideLeftIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+table tbody tr:nth-child(6) { animation-delay: 0.3s; }
+table tbody tr:nth-child(7) { animation-delay: 0.35s; }
+table tbody tr:nth-child(8) { animation-delay: 0.4s; }
+table tbody tr:nth-child(9) { animation-delay: 0.45s; }
+table tbody tr:nth-child(10) { animation-delay: 0.5s; }
+
+/* Modal Animation */
+.modal-content {
+    animation: zoomFlipIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Profile Card Animation */
+.profile-card {
+    animation: origamiFold 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Hero Section Animation */
+.hero {
+    animation: pageFlipIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.hero h1 {
+    animation: stackFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+    opacity: 0;
+}
+
+.hero p {
+    animation: stackFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+    opacity: 0;
+}
+
+.hero .btn-group, .hero-buttons {
+    animation: stackFlip 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
+    opacity: 0;
+}
+
+/* Button 3D Hover Effect */
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.btn:hover {
+    transform: translateY(-3px) rotateX(10deg);
+}
+
+.btn:active {
+    transform: translateY(0) rotateX(0deg);
+}
+
+/* Course Detail Animation */
+.course-detail, .course-info {
+    animation: morphIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Lesson Item Animation */
+.lesson-item {
+    animation: slideLeftIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+.lesson-item:nth-child(1) { animation-delay: 0.1s; }
+.lesson-item:nth-child(2) { animation-delay: 0.15s; }
+.lesson-item:nth-child(3) { animation-delay: 0.2s; }
+.lesson-item:nth-child(4) { animation-delay: 0.25s; }
+.lesson-item:nth-child(5) { animation-delay: 0.3s; }
