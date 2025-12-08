@@ -5,10 +5,14 @@
 class AuthController
 {
     private $db;
+    private $userModel;
     
     public function __construct($db)
     {
         $this->db = $db;
+        // Load model once and reuse to avoid repeated file includes and object creation
+        require_once __DIR__ . '/../models/User.php';
+        $this->userModel = new User($this->db);
     }
     
     /**
@@ -28,14 +32,20 @@ class AuthController
      */
     private function xửLýĐăngNhập()
     {
-        require_once 'models/User.php';
-        
-        $userModel = new User($this->db);
-        $userModel->username = $_POST['username'] ?? '';
-        $userModel->password = $_POST['password'] ?? '';
-        
+        // Read and trim inputs once (faster than repeated direct array access)
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        $userModel = $this->userModel;
+        $userModel->username = $username;
+        $userModel->password = $password;
+
         if ($userModel->đăngNhập()) {
             // Lưu thông tin vào session
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            }
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $userModel->id;
             $_SESSION['username'] = $userModel->username;
             $_SESSION['fullname'] = $userModel->fullname;
@@ -57,6 +67,9 @@ class AuthController
             }
             exit();
         } else {
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            }
             $_SESSION['lỗi'] = 'Tên đăng nhập hoặc mật khẩu không đúng!';
             header('Location: index.php?controller=auth&action=login');
             exit();
@@ -80,23 +93,37 @@ class AuthController
      */
     private function xửLýĐăngKý()
     {
-        require_once 'models/User.php';
-        
-        $userModel = new User($this->db);
-        $userModel->username = $_POST['username'] ?? '';
-        $userModel->email = $_POST['email'] ?? '';
-        $userModel->password = $_POST['password'] ?? '';
-        $userModel->fullname = $_POST['fullname'] ?? '';
-        $userModel->role = 0; // Mặc định là học viên
-        
-        // Validate
-        $xác_nhận_mật_khẩu = $_POST['confirm_password'] ?? '';
-        if ($userModel->password !== $xác_nhận_mật_khẩu) {
+        // Read and trim inputs once
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $fullname = trim($_POST['fullname'] ?? '');
+        $confirm_password = $_POST['confirm_password'] ?? '';
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        // Basic validation (fast checks before creating model / hashing)
+        if ($password === '' || $username === '' || $email === '') {
+            $_SESSION['lỗi'] = 'Vui lòng điền đầy đủ thông tin.';
+            header('Location: index.php?controller=auth&action=register');
+            exit();
+        }
+
+        if ($password !== $confirm_password) {
             $_SESSION['lỗi'] = 'Mật khẩu xác nhận không khớp!';
             header('Location: index.php?controller=auth&action=register');
             exit();
         }
-        
+
+        $userModel = $this->userModel;
+        $userModel->username = $username;
+        $userModel->email = $email;
+        $userModel->password = $password;
+        $userModel->fullname = $fullname;
+        $userModel->role = 0; // Mặc định là học viên
+
         if ($userModel->đăngKý()) {
             $_SESSION['thành_công'] = 'Đăng ký thành công! Vui lòng đăng nhập.';
             header('Location: index.php?controller=auth&action=login');
