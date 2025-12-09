@@ -132,14 +132,85 @@ require_once 'views/layouts/header.php';
         background: rgba(0, 255, 255, 0.1);
         padding: 1rem 1.5rem;
         border-radius: 8px;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
         display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .materials-list li:hover {
+        background: rgba(0, 255, 255, 0.2);
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
     }
     
     .materials-list li::before {
+        display: none;
+    }
+    
+    .material-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+    
+    .material-info::before {
         content: '📄';
+        font-size: 1.5rem;
+    }
+    
+    .material-name {
+        color: #00ffff;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+    
+    .material-type {
+        color: #8866aa;
+        font-size: 0.9rem;
+    }
+    
+    .material-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-view-material,
+    .btn-download-material {
+        padding: 8px 16px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .btn-view-material {
+        background: linear-gradient(135deg, #00ffff 0%, #0099cc 100%);
+        color: #0d0221 !important;
+    }
+    
+    .btn-view-material:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 255, 255, 0.5);
+    }
+    
+    .btn-download-material {
+        background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
+        color: #ffffff !important;
+    }
+    
+    .btn-download-material:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(255, 0, 255, 0.5);
     }
     
     .lessons-section {
@@ -240,9 +311,27 @@ require_once 'views/layouts/header.php';
             <h3>📚 Tài liệu học tập</h3>
             <ul class="materials-list">
                 <?php foreach ($danh_sách_tài_liệu as $tài_liệu): ?>
+                    <?php 
+                    // Tạo đường dẫn đầy đủ đến file
+                    $file_url = 'assets/uploads/materials/' . $tài_liệu['file_path'];
+                    ?>
                     <li>
-                        <?php echo htmlspecialchars($tài_liệu['filename']); ?> 
-                        <span style="color: #8866aa;">(<?php echo htmlspecialchars($tài_liệu['file_type']); ?>)</span>
+                        <div class="material-info">
+                            <span class="material-name"><?php echo htmlspecialchars($tài_liệu['filename']); ?></span>
+                            <span class="material-type">(<?php echo htmlspecialchars($tài_liệu['file_type']); ?>)</span>
+                        </div>
+                        <div class="material-actions">
+                            <a href="<?php echo htmlspecialchars($file_url); ?>" 
+                               target="_blank" 
+                               class="btn-view-material">
+                                👁️ Xem
+                            </a>
+                            <a href="<?php echo htmlspecialchars($file_url); ?>" 
+                               download="<?php echo htmlspecialchars($tài_liệu['filename']); ?>" 
+                               class="btn-download-material">
+                                ⬇️ Tải xuống
+                            </a>
+                        </div>
                     </li>
                 <?php endforeach; ?>
             </ul>
