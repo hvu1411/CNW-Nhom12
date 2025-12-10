@@ -330,4 +330,140 @@ class AuthController
         header('Location: index.php?controller=auth&action=profile');
         exit();
     }
+    
+    /**
+     * Hiển thị form quên mật khẩu
+     */
+    public function forgot_password()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->xửLýQuênMậtKhẩu();
+        } else {
+            require_once 'views/auth/forgot_password.php';
+        }
+    }
+    
+    /**
+     * Xử lý quên mật khẩu
+     */
+    private function xửLýQuênMậtKhẩu()
+    {
+        $email = trim($_POST['email'] ?? '');
+        
+        if (empty($email)) {
+            $_SESSION['lỗi'] = 'Vui lòng nhập email!';
+            header('Location: index.php?controller=auth&action=forgot_password');
+            exit();
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['lỗi'] = 'Email không hợp lệ!';
+            header('Location: index.php?controller=auth&action=forgot_password');
+            exit();
+        }
+        
+        require_once 'models/User.php';
+        $userModel = new User($this->db);
+        
+        // Tìm user theo email (không phải admin)
+        $người_dùng = $userModel->lấyTheoEmail($email);
+        
+        if (!$người_dùng) {
+            $_SESSION['lỗi'] = 'Email không tồn tại trong hệ thống hoặc là tài khoản admin!';
+            header('Location: index.php?controller=auth&action=forgot_password');
+            exit();
+        }
+        
+        // Tạo token reset password
+        $token = bin2hex(random_bytes(32));
+        $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        
+        // Lưu token vào database
+        if ($userModel->lưuTokenResetPassword($người_dùng['id'], $token, $expiry)) {
+            // Lưu token vào session để hiển thị (trong thực tế sẽ gửi email)
+            $_SESSION['reset_token'] = $token;
+            $_SESSION['thành_công'] = 'Link đặt lại mật khẩu đã được tạo! Vui lòng sử dụng link bên dưới trong vòng 1 giờ.';
+        } else {
+            $_SESSION['lỗi'] = 'Không thể tạo link đặt lại mật khẩu!';
+        }
+        
+        header('Location: index.php?controller=auth&action=forgot_password');
+        exit();
+    }
+    
+    /**
+     * Hiển thị form đặt lại mật khẩu
+     */
+    public function reset_password()
+    {
+        $token = $_GET['token'] ?? '';
+        
+        if (empty($token)) {
+            $_SESSION['lỗi'] = 'Link đặt lại mật khẩu không hợp lệ!';
+            header('Location: index.php?controller=auth&action=login');
+            exit();
+        }
+        
+        require_once 'models/User.php';
+        $userModel = new User($this->db);
+        
+        // Kiểm tra token
+        $reset_data = $userModel->kiểmTraTokenResetPassword($token);
+        
+        if (!$reset_data) {
+            $_SESSION['lỗi'] = 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!';
+            header('Location: index.php?controller=auth&action=forgot_password');
+            exit();
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->xửLýResetMậtKhẩu($token, $reset_data['user_id']);
+        } else {
+            require_once 'views/auth/reset_password.php';
+        }
+    }
+    
+    /**
+     * Xử lý đặt lại mật khẩu
+     */
+    private function xửLýResetMậtKhẩu($token, $user_id)
+    {
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        if (empty($new_password) || empty($confirm_password)) {
+            $_SESSION['lỗi'] = 'Vui lòng điền đầy đủ thông tin!';
+            header('Location: index.php?controller=auth&action=reset_password&token=' . $token);
+            exit();
+        }
+        
+        if ($new_password !== $confirm_password) {
+            $_SESSION['lỗi'] = 'Mật khẩu xác nhận không khớp!';
+            header('Location: index.php?controller=auth&action=reset_password&token=' . $token);
+            exit();
+        }
+        
+        if (strlen($new_password) < 6) {
+            $_SESSION['lỗi'] = 'Mật khẩu phải có ít nhất 6 ký tự!';
+            header('Location: index.php?controller=auth&action=reset_password&token=' . $token);
+            exit();
+        }
+        
+        require_once 'models/User.php';
+        $userModel = new User($this->db);
+        
+        // Cập nhật mật khẩu mới
+        if ($userModel->đổiMậtKhẩu($user_id, $new_password)) {
+            // Xóa token đã sử dụng
+            $userModel->xóaTokenResetPassword($user_id);
+            
+            $_SESSION['thành_công'] = 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.';
+            header('Location: index.php?controller=auth&action=login');
+            exit();
+        } else {
+            $_SESSION['lỗi'] = 'Không thể đặt lại mật khẩu!';
+            header('Location: index.php?controller=auth&action=reset_password&token=' . $token);
+            exit();
+        }
+    }
 }

@@ -22,6 +22,7 @@ require_once 'views/layouts/header.php';
             </form>
             
             <div class="auth-footer">
+                <p><a href="index.php?controller=auth&action=forgot_password" style="color: #ff00ff;">🔐 Quên mật khẩu?</a></p>
                 <p>Chưa có tài khoản? <a href="index.php?controller=auth&action=register">Đăng ký ngay</a></p>
             </div>
         </div>

@@ -236,4 +236,74 @@ class User
         }
         return false;
     }
+    
+    /**
+     * Lấy user theo email (không phải admin)
+     */
+    public function lấyTheoEmail($email)
+    {
+        $câu_truy_vấn = "SELECT * FROM " . $this->tên_bảng . " 
+                        WHERE email = :email AND role != 2 
+                        LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Lưu token reset password
+     */
+    public function lưuTokenResetPassword($user_id, $token, $expiry)
+    {
+        // Xóa token cũ nếu có
+        $câu_xóa = "DELETE FROM password_resets WHERE user_id = :user_id";
+        $stmt = $this->kết_nối->prepare($câu_xóa);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+        
+        // Lưu token mới
+        $câu_truy_vấn = "INSERT INTO password_resets (user_id, token, expiry) 
+                        VALUES (:user_id, :token, :expiry)";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':token', $token);
+        $stmt->bindParam(':expiry', $expiry);
+        
+        return $stmt->execute();
+    }
+    
+    /**
+     * Kiểm tra token reset password
+     */
+    public function kiểmTraTokenResetPassword($token)
+    {
+        $câu_truy_vấn = "SELECT pr.*, u.email, u.username, u.role 
+                        FROM password_resets pr 
+                        JOIN users u ON pr.user_id = u.id 
+                        WHERE pr.token = :token AND pr.expiry > NOW() AND u.role != 2
+                        LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Xóa token reset password
+     */
+    public function xóaTokenResetPassword($user_id)
+    {
+        $câu_truy_vấn = "DELETE FROM password_resets WHERE user_id = :user_id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':user_id', $user_id);
+        
+        return $stmt->execute();
+    }
 }
