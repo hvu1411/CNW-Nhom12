@@ -1,59 +1,73 @@
 <?php
-/**
- * Controller Enrollment - Xử lý đăng ký khóa học
- */
-class EnrollmentController
-{
-    private $db;
-    
+class EnrollmentController {
+    private $enrollmentModel;
+    private $courseModel;
+
     public function __construct($db)
     {
-        $this->db = $db;
+        session_start();
+        $this->ensureInstructor();
+
+        $this->enrollmentModel = new Enrollment($db);
+        $this->courseModel     = new Course($db);
     }
-    
-    /**
-     * Đăng ký khóa học
-     */
-    public function enroll()
+
+    // Chỉ cho phép giảng viên (role = 1)
+    private function ensureInstructor()
     {
-        // Kiểm tra đăng nhập
-        if (!isset($_SESSION['đã_đăng_nhập']) || $_SESSION['role'] != 0) {
-            $_SESSION['lỗi'] = 'Bạn cần đăng nhập với vai trò học viên để đăng ký khóa học!';
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] != 1) {
             header('Location: index.php?controller=auth&action=login');
-            exit();
+            exit;
         }
-        
-        $course_id = $_POST['course_id'] ?? null;
-        
-        if (!$course_id) {
-            header('Location: index.php');
-            exit();
+    }
+
+    private function sanitize($data)
+    {
+        if (is_array($data)) {
+            return array_map([$this, 'sanitize'], $data);
         }
-        
-        require_once 'models/Enrollment.php';
-        
-        $enrollmentModel = new Enrollment($this->db);
-        
-        // Kiểm tra đã đăng ký chưa
-        if ($enrollmentModel->kiểmTraĐãĐăngKý($course_id, $_SESSION['user_id'])) {
-            $_SESSION['lỗi'] = 'Bạn đã đăng ký khóa học này rồi!';
-            header('Location: index.php?controller=course&action=detail&id=' . $course_id);
-            exit();
+        return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+    }
+
+    // Đảm bảo khóa học thuộc về giảng viên hiện tại
+    private function ensureCourseOwner($courseId)
+    {
+        $course = $this->courseModel->getCourse($courseId);
+        if (!$course || $course['instructor_id'] != $_SESSION['user_id']) {
+            header('Location: index.php?controller=course&action=list');
+            exit;
         }
-        
-        // Đăng ký khóa học
-        $enrollmentModel->course_id = $course_id;
-        $enrollmentModel->student_id = $_SESSION['user_id'];
-        $enrollmentModel->status = 'active';
-        $enrollmentModel->progress = 0;
-        
-        if ($enrollmentModel->đăngKý()) {
-            $_SESSION['thành_công'] = 'Đăng ký khóa học thành công!';
-            header('Location: index.php?controller=student&action=my_courses');
-        } else {
-            $_SESSION['lỗi'] = 'Đăng ký khóa học thất bại!';
-            header('Location: index.php?controller=course&action=detail&id=' . $course_id);
+        return $course;
+    }
+
+    // Xem danh sách học viên của 1 khóa học
+    public function students()
+    {
+        $courseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
+        $course = $this->ensureCourseOwner($courseId);
+        $students = $this->enrollmentModel->getStudentsByCourse($courseId);
+        include 'views/students/list.php';
+    }
+
+    // Cập nhật trạng thái,tiến độ cho 1 học viên trong khóa
+    public function updateProgress()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?controller=course&action=list');
+            exit;
         }
-        exit();
+
+        $post     = $this->sanitize($_POST);
+        $courseId = (int)$post['course_id'];
+
+        $course   = $this->ensureCourseOwner($courseId);
+        $enrollmentId = (int)$post['enrollment_id'];
+        $status       = $post['status'] ?? 'active';
+        $progress     = (int)($post['progress'] ?? 0);
+        if ($progress < 0)   $progress = 0;
+        if ($progress > 100) $progress = 100;
+        $this->enrollmentModel->updateProgress($enrollmentId, $status, $progress);
+        header('Location: index.php?controller=enrollment&action=students&course_id=' . $courseId);
+        exit;
     }
 }

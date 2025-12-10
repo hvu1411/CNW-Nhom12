@@ -29,7 +29,7 @@ class CourseController {
     {
         $instructorId = $_SESSION['user_id'];
         $courses = $this->courseModel->getAllCoursesByInstructor($instructorId);
-        include 'views/courses/manage.php';
+        include 'views/instructor/my_courses.php';
     }
 
     // Action tạo mới khóa học
