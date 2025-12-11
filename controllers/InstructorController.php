@@ -222,6 +222,28 @@ class InstructorController
             $lessonModel->content = $_POST['content'] ?? '';
             $lessonModel->video_url = $_POST['video_url'] ?? '';
             $lessonModel->order = $_POST['order'] ?? 0;
+            $lessonModel->image = '';
+            
+            // Xử lý upload ảnh minh họa
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $max_size = 5 * 1024 * 1024; // 5MB
+                
+                if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
+                    $upload_dir = 'assets/uploads/lessons/';
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    $file_ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                    $file_name = 'lesson_' . time() . '_' . uniqid() . '.' . $file_ext;
+                    $file_path = $upload_dir . $file_name;
+                    
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $file_path)) {
+                        $lessonModel->image = $file_name;
+                    }
+                }
+            }
             
             if ($lessonModel->tạo()) {
                 $_SESSION['thành_công'] = 'Tạo bài học thành công!';
@@ -269,6 +291,33 @@ class InstructorController
             $lessonModel->content = $_POST['content'] ?? '';
             $lessonModel->video_url = $_POST['video_url'] ?? '';
             $lessonModel->order = $_POST['order'] ?? 0;
+            $lessonModel->image = $bài_học['image'] ?? ''; // Giữ ảnh cũ
+            
+            // Xử lý upload ảnh mới
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $max_size = 5 * 1024 * 1024; // 5MB
+                
+                if (in_array($_FILES['image']['type'], $allowed_types) && $_FILES['image']['size'] <= $max_size) {
+                    $upload_dir = 'assets/uploads/lessons/';
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    // Xóa ảnh cũ nếu có
+                    if (!empty($bài_học['image']) && file_exists($upload_dir . $bài_học['image'])) {
+                        unlink($upload_dir . $bài_học['image']);
+                    }
+                    
+                    $file_ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                    $file_name = 'lesson_' . time() . '_' . uniqid() . '.' . $file_ext;
+                    $file_path = $upload_dir . $file_name;
+                    
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $file_path)) {
+                        $lessonModel->image = $file_name;
+                    }
+                }
+            }
             
             if ($lessonModel->cậpNhật()) {
                 $_SESSION['thành_công'] = 'Cập nhật bài học thành công!';

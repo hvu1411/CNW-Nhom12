@@ -217,6 +217,20 @@ class User
     }
     
     /**
+     * Kiểm tra username đã tồn tại chưa
+     */
+    public function kiểmTraUsernameTồnTại($username)
+    {
+        $câu_truy_vấn = "SELECT id FROM " . $this->tên_bảng . " WHERE username = :username LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        
+        return $stmt->rowCount() > 0;
+    }
+    
+    /**
      * Cập nhật thông tin profile
      */
     public function cậpNhậtProfile($id, $fullname, $email, $phone)

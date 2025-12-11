@@ -276,6 +276,33 @@ require_once 'views/layouts/header.php';
     .back-btn {
         margin-top: 2rem;
     }
+    
+    /* Ảnh minh họa bài học */
+    .lesson-image-section {
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .lesson-image {
+        max-width: 100%;
+        max-height: 500px;
+        border-radius: 16px;
+        border: 3px solid #00ffff;
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .lesson-image:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+    }
+    
+    .lesson-image-caption {
+        color: #8866aa;
+        font-style: italic;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+    }
 </style>
 
 <div class="lesson-container">
@@ -296,6 +323,15 @@ require_once 'views/layouts/header.php';
             <span class="video-url-text">
                 🔗 <?php echo htmlspecialchars($bài_học['video_url']); ?>
             </span>
+        </div>
+    <?php endif; ?>
+    
+    <?php if (!empty($bài_học['image'])): ?>
+        <div class="lesson-image-section">
+            <img src="assets/uploads/lessons/<?php echo htmlspecialchars($bài_học['image']); ?>" 
+                 alt="Ảnh minh họa - <?php echo htmlspecialchars($bài_học['title']); ?>" 
+                 class="lesson-image">
+            <p class="lesson-image-caption">🖼️ Ảnh minh họa bài học</p>
         </div>
     <?php endif; ?>
     
