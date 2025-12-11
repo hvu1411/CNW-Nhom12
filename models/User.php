@@ -15,6 +15,8 @@ class User
     private $stmt_lấyTheoVaiTrò;
     private $stmt_cậpNhật;
     private $stmt_xóa;
+    private $stmt_đếmTấtCả;
+    private $stmt_đếmTheoVaiTrò;
     
     // Thuộc tính của user
     public $id;
@@ -58,6 +60,14 @@ class User
 
         $this->stmt_xóa = $this->kết_nối->prepare(
             "DELETE FROM " . $this->tên_bảng . " WHERE id = :id"
+        );
+        // Count statements for efficient aggregates
+        $this->stmt_đếmTấtCả = $this->kết_nối->prepare(
+            "SELECT COUNT(*) FROM " . $this->tên_bảng
+        );
+
+        $this->stmt_đếmTheoVaiTrò = $this->kết_nối->prepare(
+            "SELECT COUNT(*) FROM " . $this->tên_bảng . " WHERE role = :role"
         );
     }
     
@@ -130,6 +140,16 @@ class User
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Đếm tổng người dùng (efficient COUNT)
+     */
+    public function đếmTấtCả()
+    {
+        $stmt = $this->stmt_đếmTấtCả;
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
     
     /**
      * Lấy người dùng theo vai trò
@@ -139,6 +159,16 @@ class User
         $stmt = $this->stmt_lấyTheoVaiTrò;
         $stmt->execute([':role' => $vai_trò]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Đếm người dùng theo vai trò (efficient COUNT)
+     */
+    public function đếmTheoVaiTrò($vai_trò)
+    {
+        $stmt = $this->stmt_đếmTheoVaiTrò;
+        $stmt->execute([':role' => $vai_trò]);
+        return (int) $stmt->fetchColumn();
     }
     
     /**
