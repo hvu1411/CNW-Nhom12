@@ -161,4 +161,163 @@ class User
         }
         return false;
     }
+    
+    /**
+     * Cập nhật avatar
+     */
+    public function cậpNhậtAvatar($id, $avatar_filename)
+    {
+        $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " 
+                        SET avatar = :avatar 
+                        WHERE id = :id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':avatar', $avatar_filename);
+        $stmt->bindParam(':id', $id);
+        
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Đổi mật khẩu
+     */
+    public function đổiMậtKhẩu($id, $mật_khẩu_mới)
+    {
+        $mật_khẩu_đã_mã_hóa = password_hash($mật_khẩu_mới, PASSWORD_BCRYPT);
+        
+        $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " 
+                        SET password = :password 
+                        WHERE id = :id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':password', $mật_khẩu_đã_mã_hóa);
+        $stmt->bindParam(':id', $id);
+        
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Kiểm tra email đã tồn tại chưa
+     */
+    public function kiểmTraEmailTồnTại($email)
+    {
+        $câu_truy_vấn = "SELECT id FROM " . $this->tên_bảng . " WHERE email = :email LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        
+        return $stmt->rowCount() > 0;
+    }
+    
+    /**
+     * Kiểm tra username đã tồn tại chưa
+     */
+    public function kiểmTraUsernameTồnTại($username)
+    {
+        $câu_truy_vấn = "SELECT id FROM " . $this->tên_bảng . " WHERE username = :username LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        
+        return $stmt->rowCount() > 0;
+    }
+    
+    /**
+     * Cập nhật thông tin profile
+     */
+    public function cậpNhậtProfile($id, $fullname, $email, $phone)
+    {
+        $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " 
+                        SET fullname = :fullname, email = :email, phone = :phone 
+                        WHERE id = :id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':fullname', $fullname);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':phone', $phone);
+        $stmt->bindParam(':id', $id);
+        
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Lấy user theo email (không phải admin)
+     */
+    public function lấyTheoEmail($email)
+    {
+        $câu_truy_vấn = "SELECT * FROM " . $this->tên_bảng . " 
+                        WHERE email = :email AND role != 2 
+                        LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Lưu token reset password
+     */
+    public function lưuTokenResetPassword($user_id, $token, $expiry)
+    {
+        // Xóa token cũ nếu có
+        $câu_xóa = "DELETE FROM password_resets WHERE user_id = :user_id";
+        $stmt = $this->kết_nối->prepare($câu_xóa);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+        
+        // Lưu token mới
+        $câu_truy_vấn = "INSERT INTO password_resets (user_id, token, expiry) 
+                        VALUES (:user_id, :token, :expiry)";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':token', $token);
+        $stmt->bindParam(':expiry', $expiry);
+        
+        return $stmt->execute();
+    }
+    
+    /**
+     * Kiểm tra token reset password
+     */
+    public function kiểmTraTokenResetPassword($token)
+    {
+        $câu_truy_vấn = "SELECT pr.*, u.email, u.username, u.role 
+                        FROM password_resets pr 
+                        JOIN users u ON pr.user_id = u.id 
+                        WHERE pr.token = :token AND pr.expiry > NOW() AND u.role != 2
+                        LIMIT 1";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+        
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Xóa token reset password
+     */
+    public function xóaTokenResetPassword($user_id)
+    {
+        $câu_truy_vấn = "DELETE FROM password_resets WHERE user_id = :user_id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':user_id', $user_id);
+        
+        return $stmt->execute();
+    }
 }

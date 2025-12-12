@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $tiêu_đề ?? 'Hệ thống Quản lý Khóa học Online'; ?></title>
+<<<<<<< HEAD
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -30,6 +31,14 @@
         <span class="particle"></span>
         <span class="particle"></span>
     </div>
+=======
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+>>>>>>> feature/frontend-tumoazat
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -54,6 +63,7 @@
                             
                             <li class="user-menu">
                                 <span>Xin chào, <?php echo htmlspecialchars($_SESSION['fullname']); ?></span>
+                                <a href="index.php?controller=auth&action=profile">Tài khoản</a>
                                 <a href="index.php?controller=auth&action=logout" class="btn-logout">Đăng xuất</a>
                             </li>
                         <?php else: ?>

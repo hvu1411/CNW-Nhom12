@@ -14,6 +14,7 @@ class Lesson
     public $title;
     public $content;
     public $video_url;
+    public $image;
     public $order;
     public $created_at;
     
@@ -31,8 +32,8 @@ class Lesson
     public function tạo()
     {
         $câu_truy_vấn = "INSERT INTO " . $this->tên_bảng . " 
-                        (course_id, title, content, video_url, `order`) 
-                        VALUES (:course_id, :title, :content, :video_url, :order)";
+                        (course_id, title, content, video_url, image, `order`) 
+                        VALUES (:course_id, :title, :content, :video_url, :image, :order)";
         
         $stmt = $this->kết_nối->prepare($câu_truy_vấn);
         
@@ -40,6 +41,7 @@ class Lesson
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':content', $this->content);
         $stmt->bindParam(':video_url', $this->video_url);
+        $stmt->bindParam(':image', $this->image);
         $stmt->bindParam(':order', $this->order);
         
         if ($stmt->execute()) {
@@ -84,7 +86,7 @@ class Lesson
     public function cậpNhật()
     {
         $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " 
-                        SET title = :title, content = :content, video_url = :video_url, `order` = :order 
+                        SET title = :title, content = :content, video_url = :video_url, image = :image, `order` = :order 
                         WHERE id = :id";
         
         $stmt = $this->kết_nối->prepare($câu_truy_vấn);
@@ -92,6 +94,7 @@ class Lesson
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':content', $this->content);
         $stmt->bindParam(':video_url', $this->video_url);
+        $stmt->bindParam(':image', $this->image);
         $stmt->bindParam(':order', $this->order);
         $stmt->bindParam(':id', $this->id);
         
@@ -99,6 +102,20 @@ class Lesson
             return true;
         }
         return false;
+    }
+    
+    /**
+     * Cập nhật chỉ ảnh bài học
+     */
+    public function cậpNhậtẢnh($id, $image)
+    {
+        $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " SET image = :image WHERE id = :id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':image', $image);
+        $stmt->bindParam(':id', $id);
+        
+        return $stmt->execute();
     }
     
     /**
