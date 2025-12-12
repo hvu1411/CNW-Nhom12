@@ -34,7 +34,34 @@ class Material {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    public function deleteMaterial($id)
+
+    /**
+     * Tương thích tên method tiếng Việt
+     */
+    public function lấyTheoBàiHọc($lesson_id)
+    {
+        return $this->getMaterialsByLesson($lesson_id);
+    }
+    
+    /**
+     * Alias method for lấyTheoBàiHọc
+     */
+    public function lấyTheoLessonId($lesson_id)
+    {
+        return $this->getMaterialsByLesson($lesson_id);
+    }
+    
+    /**
+     * Lấy tài liệu theo ID
+     */
+    public function lấyTheoId($id)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM materials WHERE id = ? LIMIT 1");
+        $stmt->execute([(int)$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function xóa($id)
     {
         $stmt = $this->db->prepare("DELETE FROM materials WHERE id = ?");
         return $stmt->execute([(int)$id]);

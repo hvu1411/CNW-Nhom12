@@ -12,6 +12,91 @@ class Course {
         return trim($text);
     }
 
+    /**
+     * Lấy tất cả khóa học (kèm tên giảng viên + tên danh mục)
+     */
+    public function lấyTấtCả()
+    {
+        $stmt = $this->db->prepare("\
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách khóa học theo danh mục
+     */
+    public function lấyTheoDanhMục($categoryId)
+    {
+        $stmt = $this->db->prepare("\
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.category_id = ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+
+        $stmt->execute([(int)$categoryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy chi tiết khóa học theo ID (kèm tên giảng viên + tên danh mục)
+     */
+    public function lấyTheoId($id)
+    {
+        $stmt = $this->db->prepare("\
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.id = ?
+            LIMIT 1
+        ");
+
+        $stmt->execute([(int)$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tìm kiếm khóa học theo từ khóa
+     */
+    public function tìmKiếm($từ_khóa)
+    {
+        $kw = '%' . $this->sanitizeText($từ_khóa) . '%';
+
+        $stmt = $this->db->prepare("\
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.title LIKE ? OR c.description LIKE ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+
+        $stmt->execute([$kw, $kw]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Lấy tất cả khóa học do một giảng viên tạo (theo instructor_id)
     public function getAllCoursesByInstructor($instructorId)
     {
@@ -23,9 +108,7 @@ class Course {
     // Lấy thông tin chi tiết một khóa học theo id
     public function getCourse($courseId)
     {
-        $stmt = $this->db->prepare("SELECT * FROM courses WHERE id = ?");
-        $stmt->execute([(int)$courseId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $this->lấyTheoId($courseId);
     }
 
     // Tạo mới một khóa học

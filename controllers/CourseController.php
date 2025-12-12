@@ -1,122 +1,98 @@
 <?php
-class CourseController {
+/**
+ * Controller Course - Xử lý các thao tác liên quan đến khóa học
+ */
+class CourseController
+{
+    private $db;
     private $courseModel;
+    private $categoryModel;
+    private $lessonModel;
+    private $enrollmentModel;
+
     public function __construct($db)
     {
-        session_start();
-        $this->ensureInstructor();
-        $this->courseModel = new Course($db);
-    }
-    private function ensureInstructor()
-    {
-        // Nếu chưa đăng nhập hoặc không có biến role hoặc role khác 1 (giảng viên)
-        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] != 1) {
-            header('Location: index.php?controller=auth&action=login');
-            exit;
-        }
+        $this->db = $db;
+        $this->loadModels();
     }
 
-    private function sanitize($data)
+    /**
+     * Tải các model một lần trong constructor
+     */
+    private function loadModels()
     {
-        if (is_array($data)) {
-            return array_map([$this, 'sanitize'], $data);
-        }
-        return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
-    }
-
-    // Action hiển thị danh sách khóa học 
-    public function list()
-    {
-        $instructorId = $_SESSION['user_id'];
-        $courses = $this->courseModel->getAllCoursesByInstructor($instructorId);
-        include 'views/instructor/my_courses.php';
-    }
-
-    // Action tạo mới khóa học
-    public function create()
-    {
-        $errors = [];
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $post = $this->sanitize($_POST);
-
-            if (empty($post['title'])) {
-                $errors[] = 'Tiêu đề không được để trống';
-            }
-
-            if (empty($errors)) {
-                
-                $data = [
-                    'title'          => $post['title'],
-                    'description'    => $post['description'] ?? '',
-                    'instructor_id'  => $_SESSION['user_id'],
-                    'category_id'    => $post['category_id'] ?? 1,
-                    'price'          => $post['price'] ?? 0,
-                    'duration_weeks' => $post['duration_weeks'] ?? 0,
-                    'level'          => $post['level'] ?? 'Beginner',
-                    'image'          => $post['image'] ?? ''
-                ];
-
-                $this->courseModel->createCourse($data);
-                header('Location: index.php?controller=course&action=list');
-                exit;
-            }
-        }
-
-        // Nếu chưa submit hoặc có lỗi thì hiển thị lại form tạo khóa học
-        include 'views/courses/create.php';
-    }
-
-    // Action chỉnh sửa khóa học
-    public function edit()
-    {
-        $errors    = [];
-
-        $courseId  = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $instructorId = $_SESSION['user_id'];
-        $course = $this->courseModel->getCourse($courseId);
-        // Nếu không tồn tại hoặc khóa học không thuộc giảng viên hiện tại
-        if (!$course || $course['instructor_id'] != $instructorId) {
-            header('Location: index.php?controller=course&action=list');
-            exit;
-        }
-        // Nếu form submit
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $post = $this->sanitize($_POST);
-            if (empty($post['title'])) {
-                $errors[] = 'Tiêu đề không được để trống';
-            }
-
-            if (empty($errors)) {
-                $data = [
-                    'title'          => $post['title'],
-                    'description'    => $post['description'] ?? '',
-                    'instructor_id'  => $instructorId,     
-                    'category_id'    => $post['category_id'] ?? 1,
-                    'price'          => $post['price'] ?? 0,
-                    'duration_weeks' => $post['duration_weeks'] ?? 0,
-                    'level'          => $post['level'] ?? 'Beginner',
-                    'image'          => $post['image'] ?? ''
-                ];
-
-                $this->courseModel->updateCourse($courseId, $data);
-                header('Location: index.php?controller=course&action=list');
-                exit;
-            }
-        }
-
-        // Lần đầu vào trang (GET) hoặc có lỗi validate thì hiển thị form sửa
-        include 'views/courses/edit.php';
-    }
-
-    // Action xóa khóa học
-    public function delete()
-    {
+        require_once 'models/Course.php';
+        require_once 'models/Category.php';
+        require_once 'models/Lesson.php';
+        require_once 'models/Enrollment.php';
         
-        $courseId     = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        $instructorId = $_SESSION['user_id'];
-        $this->courseModel->deleteCourse($courseId, $instructorId);
-        header('Location: index.php?controller=course&action=list');
-        exit;
+        $this->courseModel = new Course($this->db);
+        $this->categoryModel = new Category($this->db);
+        $this->lessonModel = new Lesson($this->db);
+        $this->enrollmentModel = new Enrollment($this->db);
+    }
+
+    /**
+     * Hiển thị danh sách khóa học
+     */
+    public function index()
+    {
+        $category_id = $_GET['category_id'] ?? null;
+        
+        // Lấy dữ liệu từ cache nếu có (tuỳ chọn)
+        $danh_sách_khóa_học = $category_id 
+            ? $this->courseModel->lấyTheoDanhMục($category_id)
+            : $this->courseModel->lấyTấtCả();
+        
+        $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
+        
+        require_once 'views/courses/index.php';
+    }
+
+    /**
+     * Hiển thị chi tiết khóa học
+     */
+    public function detail()
+    {
+        $id = $_GET['id'] ?? null;
+        
+        if (!$id || !is_numeric($id)) {
+            header('Location: index.php?controller=course&action=index');
+            exit();
+        }
+        
+        // Lấy thông tin khóa học
+        $khóa_học = $this->courseModel->lấyTheoId($id);
+        
+        if (!$khóa_học) {
+            header('Location: index.php?controller=course&action=index');
+            exit();
+        }
+        
+        // Lấy danh sách bài học
+        $danh_sách_bài_học = $this->lessonModel->lấyTheoKhóaHọc($id);
+        
+        // Kiểm tra đã đăng ký chưa (chỉ nếu đã đăng nhập)
+        $đã_đăng_ký = isset($_SESSION['user_id']) 
+            ? $this->enrollmentModel->kiểmTraĐãĐăngKý($id, $_SESSION['user_id'])
+            : false;
+        
+        require_once 'views/courses/detail.php';
+    }
+
+    /**
+     * Tìm kiếm khóa học
+     */
+    public function search()
+    {
+        $từ_khóa = trim($_GET['keyword'] ?? '');
+        
+        $danh_sách_khóa_học = !empty($từ_khóa) 
+            ? $this->courseModel->tìmKiếm($từ_khóa)
+            : [];
+        
+        $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
+        
+        require_once 'views/courses/search.php';
     }
 }

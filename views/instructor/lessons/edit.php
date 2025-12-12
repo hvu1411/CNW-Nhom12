@@ -1,31 +1,85 @@
 <h2>Sửa bài học: <?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
-<?php if (!empty($errors)): ?>
-<ul style="color:red;">
-    <?php foreach ($errors as $e): ?>
-        <li><?= htmlspecialchars($e, ENT_QUOTES, 'UTF-8') ?></li>
-    <?php endforeach; ?>
-</ul>
-<?php endif; ?>
+<div class="container">
+    <div class="dashboard">
+        <?php require_once 'views/layouts/sidebar.php'; ?>
+        
+        <div class="content">
+            <h1>Chỉnh sửa bài học</h1>
+            
+            <?php if ($bài_học): ?>
+                <form method="POST" action="index.php?controller=instructor&action=edit_lesson&id=<?php echo $bài_học['id']; ?>" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="title">Tên bài học:</label>
+                        <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($bài_học['title']); ?>" required class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">Nội dung:</label>
+                        <textarea id="content" name="content" rows="6" required class="form-control"><?php echo htmlspecialchars($bài_học['content']); ?></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="video_url">Video URL:</label>
+                        <input type="url" id="video_url" name="video_url" value="<?php echo htmlspecialchars($bài_học['video_url']); ?>" placeholder="https://youtube.com/..." class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="image">🖼️ Ảnh minh họa:</label>
+                        <?php if (!empty($bài_học['image'])): ?>
+                            <div class="current-image" style="margin-bottom: 1rem;">
+                                <p style="opacity: 0.7;">Ảnh hiện tại:</p>
+                                <img src="assets/uploads/lessons/<?php echo htmlspecialchars($bài_học['image']); ?>" 
+                                     style="max-width: 300px; max-height: 200px; border-radius: 10px; border: 2px solid #00ffff;">
+                            </div>
+                        <?php endif; ?>
+                        <div class="upload-area">
+                            <input type="file" id="image" name="image" accept="image/*" class="form-control" onchange="previewLessonImage(this)">
+                            <p style="margin-top: 0.5rem; opacity: 0.7; font-size: 0.9rem;">Chọn ảnh mới để thay thế. Chấp nhận: JPG, PNG, GIF. Tối đa 5MB</p>
+                        </div>
+                        <div id="lesson-image-preview" style="margin-top: 1rem;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="order">Thứ tự:</label>
+                        <input type="number" id="order" name="order" min="1" value="<?php echo $bài_học['order']; ?>" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">Cập nhật</button>
+                    <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $bài_học['course_id']; ?>" class="btn btn-secondary">Hủy</a>
+                </form>
+            <?php else: ?>
+                <p>Không tìm thấy bài học.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 
-<form method="post">
-    <label>Tiêu đề:</label><br>
-    <input type="text" name="title" 
-           value="<?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?>" required><br><br>
+<script>
+function previewLessonImage(input) {
+    const preview = document.getElementById('lesson-image-preview');
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        if (!file.type.match('image.*')) {
+            alert('Vui lòng chọn file ảnh!');
+            input.value = '';
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ảnh không được vượt quá 5MB!');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<p style="opacity: 0.7;">Ảnh mới:</p><img src="' + e.target.result + '" style="max-width: 300px; max-height: 200px; border-radius: 10px; border: 2px solid #ff00ff;">';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 
-    <label>Thứ tự:</label><br>
-    <input type="number" name="order" value="<?= (int)$lesson['order'] ?>" min="1"><br><br>
-
-    <label>Video URL:</label><br>
-    <input type="text" name="video_url" 
-           value="<?= htmlspecialchars($lesson['video_url'], ENT_QUOTES, 'UTF-8') ?>"><br><br>
-
-    <label>Nội dung:</label><br>
-    <textarea name="content" rows="6" cols="60"><?= htmlspecialchars($lesson['content'], ENT_QUOTES, 'UTF-8') ?></textarea><br><br>
-
-    <button type="submit">Cập nhật</button>
-</form>
-
-<p>
-    <a href="index.php?controller=lesson&action=manage&course_id=<?= (int)$course['id'] ?>">← Quay lại danh sách bài học</a>
-</p>
+<?php require_once 'views/layouts/footer.php'; ?>

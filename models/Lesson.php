@@ -1,13 +1,49 @@
 <?php
-class Lesson {
+/**
+ * Model Lesson - Quản lý bài học
+ */
+class Lesson
+{
+    // Kết nối cơ sở dữ liệu
+    private $kết_nối;
     private $db;
+    private $tên_bảng = 'lessons';
+    
+    // Thuộc tính của lesson
+    public $id;
+    public $course_id;
+    public $title;
+    public $content;
+    public $video_url;
+    public $image;
+    public $order;
+    public $created_at;
+    
+    /**
+     * Constructor
+     */
     public function __construct($db)
     {
         $this->db = $db;
+        $this->kết_nối = $db;
     }
+
     private function sanitizeText($text)
     {
-        return trim($text);
+        return trim((string)$text);
+    }
+
+    /**
+     * Alias theo tên tiếng Việt để tương thích controller
+     */
+    public function lấyTheoKhóaHọc($course_id)
+    {
+        return $this->getLessonsByCourse($course_id);
+    }
+
+    public function lấyTheoId($id)
+    {
+        return $this->getLesson($id);
     }
     public function getLessonsByCourse($courseId)
     {

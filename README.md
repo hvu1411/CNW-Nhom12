@@ -47,6 +47,7 @@ onlinecourse/
 │   └── Database.php
 ├── .htaccess          # Cấu hình Apache
 ├── index.php          # Entry point
+├── database.sql       # File SQL tạo database
 └── README.md          # File này
 
 ```
@@ -222,8 +223,8 @@ Các tính năng có thể mở rộng:
 ## Liên hệ và Hỗ trợ
 
 Nếu có vấn đề hoặc câu hỏi, vui lòng liên hệ:
-- Email: dosuharu808@gmail.com
-
+- sdt:09XXXXXX
+DIACHI: 175 Tây Sơn, Đống Đa, Hà Nội
 
 ## License
 

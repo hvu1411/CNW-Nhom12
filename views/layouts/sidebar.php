@@ -19,6 +19,7 @@
             <ul>
                 <li><a href="index.php?controller=admin&action=dashboard">Dashboard</a></li>
                 <li><a href="index.php?controller=admin&action=manage_users">Quản lý người dùng</a></li>
+                <li><a href="index.php?controller=admin&action=list_instructors">👨‍🏫 Quản lý giảng viên</a></li>
                 <li><a href="index.php?controller=admin&action=list_categories">Quản lý danh mục</a></li>
                 <li><a href="index.php?controller=admin&action=statistics">Thống kê</a></li>
             </ul>

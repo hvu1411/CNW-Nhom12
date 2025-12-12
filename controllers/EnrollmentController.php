@@ -1,73 +1,156 @@
 <?php
-class EnrollmentController {
+/**
+ * Controller Enrollment - Xử lý đăng ký khóa học
+ */
+class EnrollmentController
+{
+    private $db;
     private $enrollmentModel;
     private $courseModel;
 
     public function __construct($db)
     {
-        session_start();
-        $this->ensureInstructor();
-
-        $this->enrollmentModel = new Enrollment($db);
-        $this->courseModel     = new Course($db);
+        $this->db = $db;
+        require_once 'models/Enrollment.php';
+        require_once 'models/Course.php';
+        $this->enrollmentModel = new Enrollment($this->db);
+        $this->courseModel = new Course($this->db);
     }
 
-    // Chỉ cho phép giảng viên (role = 1)
+    private function sanitize($data)
+    {
+        $clean = [];
+        foreach ((array)$data as $k => $v) {
+            $clean[$k] = is_string($v) ? trim($v) : $v;
+        }
+        return $clean;
+    }
+
     private function ensureInstructor()
     {
-        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] != 1) {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || (int)$_SESSION['role'] !== 1) {
             header('Location: index.php?controller=auth&action=login');
             exit;
         }
     }
 
-    private function sanitize($data)
-    {
-        if (is_array($data)) {
-            return array_map([$this, 'sanitize'], $data);
-        }
-        return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
-    }
-
-    // Đảm bảo khóa học thuộc về giảng viên hiện tại
     private function ensureCourseOwner($courseId)
     {
-        $course = $this->courseModel->getCourse($courseId);
-        if (!$course || $course['instructor_id'] != $_SESSION['user_id']) {
-            header('Location: index.php?controller=course&action=list');
+        $stmt = $this->db->prepare('SELECT * FROM courses WHERE id = ? AND instructor_id = ? LIMIT 1');
+        $stmt->execute([(int)$courseId, (int)$_SESSION['user_id']]);
+        $course = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$course) {
+            header('Location: index.php?controller=instructor&action=dashboard');
             exit;
         }
         return $course;
     }
 
-    // Xem danh sách học viên của 1 khóa học
+    /**
+     * Danh sách học viên của khóa học (giảng viên)
+     */
     public function students()
     {
-        $courseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
-        $course = $this->ensureCourseOwner($courseId);
-        $students = $this->enrollmentModel->getStudentsByCourse($courseId);
-        include 'views/students/list.php';
-    }
+        $this->ensureInstructor();
 
-    // Cập nhật trạng thái,tiến độ cho 1 học viên trong khóa
-    public function updateProgress()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: index.php?controller=course&action=list');
+        $courseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
+        if ($courseId <= 0) {
+            header('Location: index.php?controller=instructor&action=dashboard');
             exit;
         }
 
-        $post     = $this->sanitize($_POST);
-        $courseId = (int)$post['course_id'];
+        $course = $this->ensureCourseOwner($courseId);
+        $students = $this->enrollmentModel->getStudentsByCourse($courseId);
 
-        $course   = $this->ensureCourseOwner($courseId);
-        $enrollmentId = (int)$post['enrollment_id'];
-        $status       = $post['status'] ?? 'active';
-        $progress     = (int)($post['progress'] ?? 0);
-        if ($progress < 0)   $progress = 0;
+        include 'views/instructor/students/list.php';
+    }
+
+    /**
+     * Cập nhật tiến độ/trạng thái học viên (giảng viên)
+     */
+    public function updateProgress()
+    {
+        $this->ensureInstructor();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?controller=instructor&action=dashboard');
+            exit;
+        }
+
+        $post = $this->sanitize($_POST);
+        $courseId = (int)($post['course_id'] ?? 0);
+        $enrollmentId = (int)($post['enrollment_id'] ?? 0);
+        $status = $post['status'] ?? 'active';
+        $progress = (int)($post['progress'] ?? 0);
+
+        if ($progress < 0) $progress = 0;
         if ($progress > 100) $progress = 100;
-        $this->enrollmentModel->updateProgress($enrollmentId, $status, $progress);
+
+        $this->ensureCourseOwner($courseId);
+        if ($enrollmentId > 0) {
+            $this->enrollmentModel->updateProgress($enrollmentId, $status, $progress);
+        }
+
         header('Location: index.php?controller=enrollment&action=students&course_id=' . $courseId);
         exit;
+    }
+
+    /**
+     * Đăng ký khóa học
+     */
+    public function enroll()
+    {
+        // Kiểm tra đăng nhập
+        if (!$this->checkStudentLogin()) {
+            $_SESSION['lỗi'] = 'Bạn cần đăng nhập với vai trò học viên để đăng ký khóa học!';
+            header('Location: index.php?controller=auth&action=login');
+            exit;
+        }
+        
+        $course_id = $_POST['course_id'] ?? null;
+        
+        if (!$course_id || !is_numeric($course_id)) {
+            header('Location: index.php');
+            exit();
+        }
+        
+        // Kiểm tra đã đăng ký chưa
+        if ($this->enrollmentModel->kiểmTraĐãĐăngKý($course_id, $_SESSION['user_id'])) {
+            $_SESSION['lỗi'] = 'Bạn đã đăng ký khóa học này rồi!';
+            header('Location: index.php?controller=course&action=detail&id=' . $course_id);
+            exit();
+        }
+        
+        // Đăng ký khóa học
+        $this->performEnrollment($course_id);
+    }
+
+    /**
+     * Kiểm tra đăng nhập học viên
+     */
+    private function checkStudentLogin()
+    {
+        return isset($_SESSION['đã_đăng_nhập']) && $_SESSION['role'] == 0;
+    }
+
+    /**
+     * Thực hiện đăng ký khóa học
+     */
+    private function performEnrollment($course_id)
+    {
+        $this->enrollmentModel->course_id = $course_id;
+        $this->enrollmentModel->student_id = $_SESSION['user_id'];
+        $this->enrollmentModel->status = 'active';
+        $this->enrollmentModel->progress = 0;
+        
+        if ($this->enrollmentModel->đăngKý()) {
+            $_SESSION['thành_công'] = 'Đăng ký khóa học thành công!';
+            header('Location: index.php?controller=student&action=my_courses');
+            exit;
+        } else {
+            $_SESSION['lỗi'] = 'Đăng ký khóa học thất bại!';
+            header('Location: index.php?controller=course&action=detail&id=' . $this->enrollmentModel->course_id);
+            exit;
+        }
     }
 }
