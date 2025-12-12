@@ -11,11 +11,7 @@ require_once 'views/layouts/header.php';
             <h1>Chỉnh sửa bài học</h1>
             
             <?php if ($bài_học): ?>
-<<<<<<< HEAD
-                <form method="POST" action="index.php?controller=instructor&action=edit_lesson&id=<?php echo $bài_học['id']; ?>">
-=======
                 <form method="POST" action="index.php?controller=instructor&action=edit_lesson&id=<?php echo $bài_học['id']; ?>" enctype="multipart/form-data">
->>>>>>> feature/frontend-tumoazat
                     <div class="form-group">
                         <label for="title">Tên bài học:</label>
                         <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($bài_học['title']); ?>" required class="form-control">
@@ -32,8 +28,6 @@ require_once 'views/layouts/header.php';
                     </div>
                     
                     <div class="form-group">
-<<<<<<< HEAD
-=======
                         <label for="image">🖼️ Ảnh minh họa:</label>
                         <?php if (!empty($bài_học['image'])): ?>
                             <div class="current-image" style="margin-bottom: 1rem;">
@@ -50,7 +44,6 @@ require_once 'views/layouts/header.php';
                     </div>
                     
                     <div class="form-group">
->>>>>>> feature/frontend-tumoazat
                         <label for="order">Thứ tự:</label>
                         <input type="number" id="order" name="order" min="1" value="<?php echo $bài_học['order']; ?>" class="form-control">
                     </div>
@@ -65,8 +58,6 @@ require_once 'views/layouts/header.php';
     </div>
 </div>
 
-<<<<<<< HEAD
-=======
 <script>
 function previewLessonImage(input) {
     const preview = document.getElementById('lesson-image-preview');
@@ -94,5 +85,4 @@ function previewLessonImage(input) {
 }
 </script>
 
->>>>>>> feature/frontend-tumoazat
 <?php require_once 'views/layouts/footer.php'; ?>

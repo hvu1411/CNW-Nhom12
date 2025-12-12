@@ -10,11 +10,7 @@ require_once 'views/layouts/header.php';
         <div class="content">
             <h1>Tạo bài học mới</h1>
             
-<<<<<<< HEAD
-            <form method="POST" action="index.php?controller=instructor&action=create_lesson&course_id=<?php echo $_GET['course_id']; ?>">
-=======
             <form method="POST" action="index.php?controller=instructor&action=create_lesson&course_id=<?php echo $_GET['course_id']; ?>" enctype="multipart/form-data">
->>>>>>> feature/frontend-tumoazat
                 <div class="form-group">
                     <label for="title">Tên bài học:</label>
                     <input type="text" id="title" name="title" required class="form-control">
@@ -31,8 +27,6 @@ require_once 'views/layouts/header.php';
                 </div>
                 
                 <div class="form-group">
-<<<<<<< HEAD
-=======
                     <label for="image">🖼️ Ảnh minh họa:</label>
                     <div class="upload-area" id="lesson-image-area">
                         <input type="file" id="image" name="image" accept="image/*" class="form-control" onchange="previewLessonImage(this)">
@@ -42,7 +36,6 @@ require_once 'views/layouts/header.php';
                 </div>
                 
                 <div class="form-group">
->>>>>>> feature/frontend-tumoazat
                     <label for="order">Thứ tự:</label>
                     <input type="number" id="order" name="order" min="1" value="1" class="form-control">
                 </div>
@@ -54,8 +47,6 @@ require_once 'views/layouts/header.php';
     </div>
 </div>
 
-<<<<<<< HEAD
-=======
 <script>
 function previewLessonImage(input) {
     const preview = document.getElementById('lesson-image-preview');
@@ -85,5 +76,4 @@ function previewLessonImage(input) {
 }
 </script>
 
->>>>>>> feature/frontend-tumoazat
 <?php require_once 'views/layouts/footer.php'; ?>

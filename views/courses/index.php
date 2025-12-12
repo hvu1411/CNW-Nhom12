@@ -3,8 +3,6 @@ $tiêu_đề = "Danh sách khóa học - Hệ thống Quản lý Khóa học Onl
 require_once 'views/layouts/header.php';
 ?>
 
-<<<<<<< HEAD
-=======
 <style>
     .course-card {
         cursor: pointer;
@@ -26,7 +24,6 @@ require_once 'views/layouts/header.php';
     }
 </style>
 
->>>>>>> feature/frontend-tumoazat
 <div class="container">
     <h1>Danh sách khóa học</h1>
     
@@ -47,11 +44,7 @@ require_once 'views/layouts/header.php';
     <div class="course-grid">
         <?php if (!empty($danh_sách_khóa_học)): ?>
             <?php foreach ($danh_sách_khóa_học as $khóa_học): ?>
-<<<<<<< HEAD
-                <div class="course-card">
-=======
                 <div class="course-card" onclick="window.location.href='index.php?controller=course&action=detail&id=<?php echo $khóa_học['id']; ?>'">
->>>>>>> feature/frontend-tumoazat
                     <div class="course-image">
                         <?php if (!empty($khóa_học['image'])): ?>
                             <img src="assets/images/<?php echo htmlspecialchars($khóa_học['image']); ?>" alt="<?php echo htmlspecialchars($khóa_học['title']); ?>">
@@ -65,10 +58,6 @@ require_once 'views/layouts/header.php';
                         <p class="course-category">Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục']); ?></p>
                         <p class="course-level">Trình độ: <?php echo htmlspecialchars($khóa_học['level']); ?></p>
                         <p class="course-price"><?php echo number_format($khóa_học['price'], 0, ',', '.'); ?> VNĐ</p>
-<<<<<<< HEAD
-                        <a href="index.php?controller=course&action=detail&id=<?php echo $khóa_học['id']; ?>" class="btn btn-small">Chi tiết</a>
-=======
->>>>>>> feature/frontend-tumoazat
                     </div>
                 </div>
             <?php endforeach; ?>

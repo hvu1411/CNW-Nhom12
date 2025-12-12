@@ -22,16 +22,9 @@ require_once 'views/layouts/header.php';
         <div class="category-grid">
             <?php if (!empty($danh_sách_danh_mục)): ?>
                 <?php foreach ($danh_sách_danh_mục as $danh_mục): ?>
-<<<<<<< HEAD
-                    <div class="category-card">
-                        <h3><?php echo htmlspecialchars($danh_mục['name']); ?></h3>
-                        <p><?php echo htmlspecialchars($danh_mục['description']); ?></p>
-                        <a href="index.php?controller=course&action=index&category_id=<?php echo $danh_mục['id']; ?>" class="btn btn-small">Xem khóa học</a>
-=======
                     <div class="category-card" onclick="window.location.href='index.php?controller=course&action=index&category_id=<?php echo $danh_mục['id']; ?>'" style="cursor: pointer;">
                         <h3><?php echo htmlspecialchars($danh_mục['name']); ?></h3>
                         <p><?php echo htmlspecialchars($danh_mục['description']); ?></p>
->>>>>>> feature/frontend-tumoazat
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -47,11 +40,7 @@ require_once 'views/layouts/header.php';
                 <?php $đếm = 0; ?>
                 <?php foreach ($danh_sách_khóa_học as $khóa_học): ?>
                     <?php if ($đếm >= 6) break; ?>
-<<<<<<< HEAD
-                    <div class="course-card">
-=======
                     <div class="course-card" onclick="window.location.href='index.php?controller=course&action=detail&id=<?php echo $khóa_học['id']; ?>'">
->>>>>>> feature/frontend-tumoazat
                         <div class="course-image">
                             <?php if (!empty($khóa_học['image'])): ?>
                                 <img src="assets/images/<?php echo htmlspecialchars($khóa_học['image']); ?>" alt="<?php echo htmlspecialchars($khóa_học['title']); ?>">
@@ -65,10 +54,6 @@ require_once 'views/layouts/header.php';
                             <p class="course-category">Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục']); ?></p>
                             <p class="course-level">Trình độ: <?php echo htmlspecialchars($khóa_học['level']); ?></p>
                             <p class="course-price"><?php echo number_format($khóa_học['price'], 0, ',', '.'); ?> VNĐ</p>
-<<<<<<< HEAD
-                            <a href="index.php?controller=course&action=detail&id=<?php echo $khóa_học['id']; ?>" class="btn btn-small">Chi tiết</a>
-=======
->>>>>>> feature/frontend-tumoazat
                         </div>
                     </div>
                     <?php $đếm++; ?>

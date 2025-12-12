@@ -63,8 +63,6 @@ class Material
     }
     
     /**
-<<<<<<< HEAD
-=======
      * Alias method for lấyTheoBàiHọc
      */
     public function lấyTheoLessonId($lesson_id)
@@ -73,7 +71,6 @@ class Material
     }
     
     /**
->>>>>>> feature/frontend-tumoazat
      * Lấy tài liệu theo ID
      */
     public function lấyTheoId($id)
