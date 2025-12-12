@@ -18,12 +18,12 @@
                 </div>
                 <div class="footer-section">
                     <h3>Liên hệ</h3>
-                    <p>Email: contact@onlinecourse.com</p>
-                    <p>Điện thoại: 0123 456 789</p>
+                    <p>📞 Điện thoại: 09xxx</p>
+                    <p>📍 Địa chỉ: Đại học Thủy lợi, 175 Tây Sơn, Đống Đa, Hà Nội</p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Hệ thống Khóa học Online. Bản quyền thuộc về chúng tôi.</p>
+                <p>&copy; 2025 Hệ thống Khóa học Online - Đại học Thủy lợi. Bản quyền thuộc về chúng tôi.</p>
             </div>
         </div>
     </footer>

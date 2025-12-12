@@ -19,15 +19,10 @@ require_once 'views/layouts/header.php';
         <h2>Danh mục khóa học</h2>
         <div class="category-grid">
             <?php if (!empty($danh_sách_danh_mục)): ?>
-                <?php foreach ($danh_sách_danh_mục as $danh_mục): 
-                    $cat_id = $danh_mục['id'];
-                    $cat_name = htmlspecialchars($danh_mục['name']);
-                    $cat_desc = htmlspecialchars($danh_mục['description']);
-                ?>
-                    <div class="category-card">
-                        <h3><?= $cat_name ?></h3>
-                        <p><?= $cat_desc ?></p>
-                        <a href="index.php?controller=course&action=index&category_id=<?= $cat_id ?>" class="btn btn-small">Xem khóa học</a>
+                <?php foreach ($danh_sách_danh_mục as $danh_mục): ?>
+                    <div class="category-card" onclick="window.location.href='index.php?controller=course&action=index&category_id=<?php echo $danh_mục['id']; ?>'" style="cursor: pointer;">
+                        <h3><?php echo htmlspecialchars($danh_mục['name']); ?></h3>
+                        <p><?php echo htmlspecialchars($danh_mục['description']); ?></p>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>

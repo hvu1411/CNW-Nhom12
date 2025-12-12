@@ -47,6 +47,7 @@ onlinecourse/
 │   └── Database.php
 ├── .htaccess          # Cấu hình Apache
 ├── index.php          # Entry point
+├── database.sql       # File SQL tạo database
 └── README.md          # File này
 
 ```
@@ -218,3 +219,17 @@ Các tính năng có thể mở rộng:
 - Email verification
 - Quiz và bài kiểm tra
 - Video streaming
+
+## Liên hệ và Hỗ trợ
+
+Nếu có vấn đề hoặc câu hỏi, vui lòng liên hệ:
+- sdt:09XXXXXX
+DIACHI: 175 Tây Sơn, Đống Đa, Hà Nội
+
+## License
+
+Copyright © 2024 Online Course Management System. All rights reserved.
+
+---
+
+**Lưu ý:** Đây là project học tập, không nên sử dụng trực tiếp cho môi trường production mà không có security audit và testing đầy đủ.

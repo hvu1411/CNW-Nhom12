@@ -186,4 +186,59 @@ class Course
         $stmt->bindParam(':level', $this->level, PDO::PARAM_STR);
         $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
     }
+    
+    /**
+     * Đếm số khóa học theo giảng viên
+     */
+    public function đếmKhóaHọcTheoGiảngViên($instructor_id)
+    {
+        $câu_truy_vấn = "SELECT COUNT(*) as total FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':instructor_id', $instructor_id);
+        $stmt->execute();
+        
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+    
+    /**
+     * Đếm số học viên của khóa học
+     */
+    public function đếmHọcViên($course_id)
+    {
+        $câu_truy_vấn = "SELECT COUNT(*) as total FROM enrollments WHERE course_id = :course_id";
+        
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':course_id', $course_id);
+        $stmt->execute();
+        
+        $result = $stmt->fetch();
+        return $result['total'] ?? 0;
+    }
+    
+    /**
+     * Xóa tất cả khóa học của giảng viên
+     */
+    public function xóaTheoGiảngViên($instructor_id)
+    {
+        // Xóa enrollments của các khóa học
+        $câu_xóa_enrollment = "DELETE FROM enrollments WHERE course_id IN (SELECT id FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id)";
+        $stmt = $this->kết_nối->prepare($câu_xóa_enrollment);
+        $stmt->bindParam(':instructor_id', $instructor_id);
+        $stmt->execute();
+        
+        // Xóa lessons của các khóa học
+        $câu_xóa_lessons = "DELETE FROM lessons WHERE course_id IN (SELECT id FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id)";
+        $stmt = $this->kết_nối->prepare($câu_xóa_lessons);
+        $stmt->bindParam(':instructor_id', $instructor_id);
+        $stmt->execute();
+        
+        // Xóa khóa học
+        $câu_truy_vấn = "DELETE FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id";
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':instructor_id', $instructor_id);
+        
+        return $stmt->execute();
+    }
 }

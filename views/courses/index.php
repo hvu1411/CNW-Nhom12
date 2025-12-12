@@ -6,6 +6,27 @@ require_once 'views/layouts/header.php';
 $selected_category = $_GET['category_id'] ?? '';
 ?>
 
+<style>
+    .course-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(255, 0, 255, 0.3);
+    }
+    
+    .course-card .course-info {
+        position: relative;
+    }
+    
+    /* Ẩn nút chi tiết */
+    .course-card .btn-detail {
+        display: none;
+    }
+</style>
+
 <div class="container">
     <h1>Danh sách khóa học</h1>
     
@@ -44,12 +65,11 @@ $selected_category = $_GET['category_id'] ?? '';
                         <?php endif; ?>
                     </div>
                     <div class="course-info">
-                        <h3><?= $course_title ?></h3>
-                        <p class="course-instructor">Giảng viên: <?= $course_instructor ?></p>
-                        <p class="course-category">Danh mục: <?= $course_category ?></p>
-                        <p class="course-level">Trình độ: <?= $course_level ?></p>
-                        <p class="course-price"><?= $course_price ?> VNĐ</p>
-                        <a href="index.php?controller=course&action=detail&id=<?= $course_id ?>" class="btn btn-small">Chi tiết</a>
+                        <h3><?php echo htmlspecialchars($khóa_học['title']); ?></h3>
+                        <p class="course-instructor">Giảng viên: <?php echo htmlspecialchars($khóa_học['tên_giảng_viên']); ?></p>
+                        <p class="course-category">Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục']); ?></p>
+                        <p class="course-level">Trình độ: <?php echo htmlspecialchars($khóa_học['level']); ?></p>
+                        <p class="course-price"><?php echo number_format($khóa_học['price'], 0, ',', '.'); ?> VNĐ</p>
                     </div>
                 </div>
             <?php endforeach; ?>
