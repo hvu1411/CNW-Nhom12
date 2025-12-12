@@ -1,7 +1,4 @@
-<?php
-$tiêu_đề = "Chỉnh sửa bài học - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Sửa bài học: <?= htmlspecialchars($lesson['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
 <div class="container">
     <div class="dashboard">

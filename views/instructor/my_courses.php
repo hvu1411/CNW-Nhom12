@@ -1,49 +1,32 @@
-<?php
-$tiêu_đề = "Khóa học của tôi - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Khóa học của tôi</h2>
 
-<div class="container">
-    <div class="dashboard">
-        <?php require_once 'views/layouts/sidebar.php'; ?>
-        
-        <div class="content">
-            <h1>Khóa học của tôi</h1>
-            
-            <a href="index.php?controller=instructor&action=create_course" class="btn btn-success" style="margin-bottom: 1rem;">Tạo khóa học mới</a>
-            
-            <?php if (!empty($danh_sách_khóa_học)): ?>
-                <div class="course-grid">
-                    <?php foreach ($danh_sách_khóa_học as $khóa_học): ?>
-                        <div class="course-card">
-                            <div class="course-image">
-                                <?php if (!empty($khóa_học['image'])): ?>
-                                    <img src="assets/images/<?php echo htmlspecialchars($khóa_học['image']); ?>" alt="<?php echo htmlspecialchars($khóa_học['title']); ?>">
-                                <?php else: ?>
-                                    <div class="course-placeholder">Không có ảnh</div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="course-info">
-                                <h3><?php echo htmlspecialchars($khóa_học['title']); ?></h3>
-                                <p>Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục']); ?></p>
-                                <p>Giá: <?php echo number_format($khóa_học['price'], 0, ',', '.'); ?> VNĐ</p>
-                                <p>Trình độ: <?php echo htmlspecialchars($khóa_học['level']); ?></p>
-                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                    <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $khóa_học['id']; ?>" class="btn btn-small">Quản lý</a>
-                                    <a href="index.php?controller=instructor&action=edit_course&id=<?php echo $khóa_học['id']; ?>" class="btn btn-small">Sửa</a>
-                                    <a href="index.php?controller=instructor&action=delete_course&id=<?php echo $khóa_học['id']; ?>" 
-                                       onclick="return xácNhậnXóa('Bạn có chắc muốn xóa khóa học này?')" 
-                                       class="btn btn-small btn-danger">Xóa</a>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <p>Bạn chưa có khóa học nào.</p>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+<a href="index.php?controller=course&action=create">+ Tạo khóa học mới</a>
 
-<?php require_once 'views/layouts/footer.php'; ?>
+<?php if (!empty($courses)): ?>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Tiêu đề</th>
+        <th>Giá</th>
+        <th>Thời lượng (tuần)</th>
+        <th>Cấp độ</th>
+        <th>Thao tác</th>
+    </tr>
+    <?php foreach ($courses as $course): ?>
+    <tr>
+        <td><?= htmlspecialchars($course['title'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= htmlspecialchars($course['price'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= (int)$course['duration_weeks'] ?></td>
+        <td><?= htmlspecialchars($course['level'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td>
+            <a href="index.php?controller=course&action=edit&id=<?= (int)$course['id'] ?>">Sửa</a> |
+            <a href="index.php?controller=course&action=delete&id=<?= (int)$course['id'] ?>"
+               onclick="return confirm('Bạn có chắc muốn xóa khóa học này?')">Xóa</a> |
+            <a href="index.php?controller=lesson&action=manage&course_id=<?= (int)$course['id'] ?>">Bài học</a> |
+            <a href="index.php?controller=enrollment&action=students&course_id=<?= (int)$course['id'] ?>">Học viên</a>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+<?php else: ?>
+<p>Bạn chưa có khóa học nào.</p>
+<?php endif; ?>
