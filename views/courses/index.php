@@ -54,10 +54,10 @@ require_once 'views/layouts/header.php';
                     </div>
                     <div class="course-info">
                         <h3><?php echo htmlspecialchars($khóa_học['title']); ?></h3>
-                        <p class="course-instructor">Giảng viên: <?php echo htmlspecialchars($khóa_học['tên_giảng_viên']); ?></p>
-                        <p class="course-category">Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục']); ?></p>
-                        <p class="course-level">Trình độ: <?php echo htmlspecialchars($khóa_học['level']); ?></p>
-                        <p class="course-price"><?php echo number_format($khóa_học['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <p class="course-instructor">Giảng viên: <?php echo htmlspecialchars($khóa_học['tên_giảng_viên'] ?? ''); ?></p>
+                        <p class="course-category">Danh mục: <?php echo htmlspecialchars($khóa_học['tên_danh_mục'] ?? ''); ?></p>
+                        <p class="course-level">Trình độ: <?php echo htmlspecialchars($khóa_học['level'] ?? ''); ?></p>
+                        <p class="course-price"><?php echo number_format($khóa_học['price'] ?? 0, 0, ',', '.'); ?> VNĐ</p>
                     </div>
                 </div>
             <?php endforeach; ?>

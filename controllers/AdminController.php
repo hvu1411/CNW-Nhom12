@@ -202,9 +202,9 @@ class AdminController
         
         $danh_sách_giảng_viên = $userModel->lấyTheoVaiTrò(1);
         
-        // Đếm số khóa học của mỗi giảng viên
-        foreach ($danh_sách_giảng_viên as &$gv) {
-            $gv['số_khóa_học'] = $courseModel->đếmKhóaHọcTheoGiảngViên($gv['id']);
+        // Đếm số khóa học của mỗi giảng viên (không dùng tham chiếu để tránh side-effect)
+        foreach ($danh_sách_giảng_viên as $i => $gv) {
+            $danh_sách_giảng_viên[$i]['số_khóa_học'] = $courseModel->đếmKhóaHọcTheoGiảngViên($gv['id']);
         }
         
         require_once 'views/admin/instructors/list.php';
@@ -248,12 +248,18 @@ class AdminController
             $userModel->role = 1; // Giảng viên
             
             if ($userModel->đăngKý()) {
-                // Cập nhật số điện thoại nếu có
-                if (!empty($_POST['phone'])) {
-                    $lastId = $this->db->lastInsertId();
-                    $userModel->cậpNhậtProfile($lastId, $_POST['fullname'], $_POST['email'], $_POST['phone']);
+                // Lấy lại bản ghi vừa tạo bằng email (an toàn hơn lastInsertId)
+                $created = $userModel->lấyTheoEmail($_POST['email']);
+                if (!$created) {
+                    // Dự phòng: thử lấy theo username
+                    $created = $userModel->lấyTheoUsername($_POST['username']);
                 }
-                
+
+                // Cập nhật số điện thoại nếu có và nếu bản ghi tồn tại
+                if (!empty($_POST['phone']) && $created && isset($created['id'])) {
+                    $userModel->cậpNhậtProfile((int)$created['id'], $_POST['fullname'], $_POST['email'], $_POST['phone']);
+                }
+
                 $_SESSION['thành_công'] = 'Tạo giảng viên thành công!';
                 header('Location: index.php?controller=admin&action=list_instructors');
                 exit();

@@ -31,19 +31,20 @@ class Lesson
      */
     public function tạo()
     {
+        // Note: trường `image` có thể không tồn tại trong schema hiện tại,
+        // vì vậy INSERT sẽ không bao gồm image để tránh lỗi SQL.
         $câu_truy_vấn = "INSERT INTO " . $this->tên_bảng . " 
-                        (course_id, title, content, video_url, image, `order`) 
-                        VALUES (:course_id, :title, :content, :video_url, :image, :order)";
-        
+                        (course_id, title, content, video_url, `order`) 
+                        VALUES (:course_id, :title, :content, :video_url, :order)";
+
         $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        
+
         $stmt->bindParam(':course_id', $this->course_id);
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':content', $this->content);
         $stmt->bindParam(':video_url', $this->video_url);
-        $stmt->bindParam(':image', $this->image);
         $stmt->bindParam(':order', $this->order);
-        
+
         if ($stmt->execute()) {
             return true;
         }
@@ -85,19 +86,19 @@ class Lesson
      */
     public function cậpNhật()
     {
+        // Cập nhật không bao gồm trường image nếu schema không có
         $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " 
-                        SET title = :title, content = :content, video_url = :video_url, image = :image, `order` = :order 
+                        SET title = :title, content = :content, video_url = :video_url, `order` = :order 
                         WHERE id = :id";
-        
+
         $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        
+
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':content', $this->content);
         $stmt->bindParam(':video_url', $this->video_url);
-        $stmt->bindParam(':image', $this->image);
         $stmt->bindParam(':order', $this->order);
         $stmt->bindParam(':id', $this->id);
-        
+
         if ($stmt->execute()) {
             return true;
         }
@@ -109,13 +110,9 @@ class Lesson
      */
     public function cậpNhậtẢnh($id, $image)
     {
-        $câu_truy_vấn = "UPDATE " . $this->tên_bảng . " SET image = :image WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':image', $image);
-        $stmt->bindParam(':id', $id);
-        
-        return $stmt->execute();
+        // Nếu bảng có trường image, bạn có thể mở lại hàm này để cập nhật.
+        // Hiện tại trả về false để tránh lỗi khi trường image không tồn tại.
+        return false;
     }
     
     /**

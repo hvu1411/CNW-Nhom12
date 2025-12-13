@@ -646,6 +646,19 @@ select.form-control {
     padding-right: 40px;
 }
 
+/* Ensure native dropdown options are readable on dark theme */
+select.form-control, select.form-control option {
+    background-color: rgba(13, 2, 33, 0.98) !important;
+    color: #00ffff !important;
+}
+
+/* Some browsers need explicit option hover/selected colors */
+select.form-control option:checked,
+select.form-control option:active,
+select.form-control option:hover {
+    background-color: rgba(0, 255, 255, 0.08) !important;
+    color: #00ffff !important;
+}
 /* ========================================
    AUTH PAGES
    ======================================== */

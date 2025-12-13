@@ -30,22 +30,26 @@ class User
      */
     public function đăngKý()
     {
+        // Kiểm tra trùng username hoặc email
+        $check = $this->kết_nối->prepare("SELECT id FROM " . $this->tên_bảng . " WHERE username = :username OR email = :email LIMIT 1");
+        $check->bindParam(':username', $this->username);
+        $check->bindParam(':email', $this->email);
+        $check->execute();
+        if ($check->fetch()) {
+            // Đã tồn tại username hoặc email
+            return false;
+        }
+
         $câu_truy_vấn = "INSERT INTO " . $this->tên_bảng . " 
                         (username, email, password, fullname, role) 
                         VALUES (:username, :email, :password, :fullname, :role)";
-        
         $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        
-        // Mã hóa mật khẩu
         $mật_khẩu_đã_mã_hóa = password_hash($this->password, PASSWORD_BCRYPT);
-        
-        // Bind dữ liệu
         $stmt->bindParam(':username', $this->username);
         $stmt->bindParam(':email', $this->email);
         $stmt->bindParam(':password', $mật_khẩu_đã_mã_hóa);
         $stmt->bindParam(':fullname', $this->fullname);
         $stmt->bindParam(':role', $this->role);
-        
         if ($stmt->execute()) {
             return true;
         }
@@ -264,6 +268,18 @@ class User
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         
+        return $stmt->fetch();
+    }
+
+    /**
+     * Lấy user theo username
+     */
+    public function lấyTheoUsername($username)
+    {
+        $câu_truy_vấn = "SELECT * FROM " . $this->tên_bảng . " WHERE username = :username LIMIT 1";
+        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
         return $stmt->fetch();
     }
     

@@ -6,41 +6,88 @@ Website quản lý khóa học online được xây dựng bằng PHP & MySQL th
 ## Công nghệ sử dụng
 - PHP 7.4+
 - MySQL 5.7+
-- HTML5, CSS3, JavaScript
-- Mô hình MVC
-- PDO cho kết nối cơ sở dữ liệu
-- Password hashing với bcrypt
-
-## Cấu trúc thư mục
-
-```
 onlinecourse/
 ├── controllers/         # Controllers xử lý logic
-│   ├── HomeController.php
+│   ├── AdminController.php
 │   ├── AuthController.php
 │   ├── CourseController.php
 │   ├── EnrollmentController.php
-│   ├── LessonController.php
-│   ├── StudentController.php
+│   ├── HomeController.php
 │   ├── InstructorController.php
-│   └── AdminController.php
+│   ├── LessonController.php
+│   └── StudentController.php
 ├── models/             # Models tương tác với database
-│   ├── User.php
-│   ├── Course.php
 │   ├── Category.php
+│   ├── Course.php
 │   ├── Enrollment.php
 │   ├── Lesson.php
-│   └── Material.php
+│   ├── Material.php
+│   └── User.php
 ├── views/              # Views hiển thị giao diện
-│   ├── layouts/
-│   ├── home/
+│   ├── admin/
+│   │   ├── dashboard.php
+│   │   ├── categories/
+│   │   │   ├── create.php
+│   │   │   ├── edit.php
+│   │   │   └── list.php
+│   │   ├── instructors/
+│   │   │   ├── courses.php
+│   │   │   ├── create.php
+│   │   │   ├── edit.php
+│   │   │   └── list.php
+│   │   ├── reports/
+│   │   │   └── statistics.php
+│   │   └── users/
+│   │       └── manage.php
 │   ├── auth/
+│   │   ├── forgot_password.php
+│   │   ├── login.php
+│   │   ├── profile.php
+│   │   ├── register.php
+│   │   └── reset_password.php
 │   ├── courses/
-│   ├── student/
+│   │   ├── detail.php
+│   │   ├── index.php
+│   │   └── search.php
+│   ├── home/
+│   │   └── index.php
 │   ├── instructor/
-│   └── admin/
+│   │   ├── dashboard.php
+│   │   ├── my_courses.php
+│   │   ├── course/
+│   │   │   ├── create.php
+│   │   │   ├── edit.php
+│   │   │   └── manage.php
+│   │   ├── lessons/
+│   │   │   ├── create.php
+│   │   │   ├── edit.php
+│   │   │   └── manage.php
+│   │   ├── materials/
+│   │   │   └── upload.php
+│   │   └── students/
+│   │       └── list.php
+│   ├── layouts/
+│   │   ├── footer.php
+│   │   ├── header.php
+│   │   └── sidebar.php
+│   └── student/
+│       ├── course_progress.php
+│       ├── dashboard.php
+│       ├── lesson_view.php
+│       └── my_courses.php
 ├── assets/             # Tài nguyên tĩnh
 │   ├── css/
+│   │   └── style.css
+│   ├── js/
+│   │   └── script.js
+│   └── uploads/
+│       ├── avatars/
+│       └── materials/
+├── config/             # Cấu hình
+│   └── Database.php
+├── .htaccess            # Cấu hình Apache
+├── index.php            # Entry point
+└── README.md            # File này
 │   ├── js/
 │   └── uploads/
 ├── config/             # Cấu hình
@@ -94,13 +141,15 @@ onlinecourse/
    - **Quản trị viên:**
      - Username: `admin`
      - Password: `admin123`
-   - **Giảng viên:**
+   - **Giảng viên 1:**
      - Username: `giaovien1`
      - Password: `giaovien123`
    - **Học viên:**
-     - Username: `hocvien1`
-     - Password: `hocvien123`
-
+     - Username: `dat lang son`
+     - Password: `12345678`
+**Giảng viên 2:**
+     - Username: `giaovien123`
+     - Password: `123456`
 ## Chức năng chính
 
 ### Chức năng Học viên (role = 0)
