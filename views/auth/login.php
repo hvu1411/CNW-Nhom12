@@ -59,7 +59,7 @@ $csrf_token = $_SESSION['csrf_token'];
             </form>
             
             <div class="auth-footer">
-                <p><a href="index.php?controller=auth&action=forgot_password" style="color: #ff00ff;">🔐 Quên mật khẩu?</a></p>
+                <!-- Quên mật khẩu link removed as requested -->
                 <p>Chưa có tài khoản? <a href="index.php?controller=auth&action=register">Đăng ký ngay</a></p>
             </div>
         </div>

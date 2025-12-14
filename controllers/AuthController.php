@@ -358,65 +358,6 @@ class AuthController
         exit();
     }
     
-    /**
-     * Hiển thị form quên mật khẩu
-     */
-    public function forgot_password()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->xửLýQuênMậtKhẩu();
-        } else {
-            require_once 'views/auth/forgot_password.php';
-        }
-    }
-    
-    /**
-     * Xử lý quên mật khẩu
-     */
-    private function xửLýQuênMậtKhẩu()
-    {
-        $email = trim($_POST['email'] ?? '');
-        
-        if (empty($email)) {
-            $_SESSION['lỗi'] = 'Vui lòng nhập email!';
-            header('Location: index.php?controller=auth&action=forgot_password');
-            exit();
-        }
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['lỗi'] = 'Email không hợp lệ!';
-            header('Location: index.php?controller=auth&action=forgot_password');
-            exit();
-        }
-        
-        require_once 'models/User.php';
-        $userModel = new User($this->db);
-        
-        // Tìm user theo email (không phải admin)
-        $người_dùng = $userModel->lấyTheoEmail($email);
-        
-        if (!$người_dùng) {
-            $_SESSION['lỗi'] = 'Email không tồn tại trong hệ thống hoặc là tài khoản admin!';
-            header('Location: index.php?controller=auth&action=forgot_password');
-            exit();
-        }
-        
-        // Tạo token reset password
-        $token = bin2hex(random_bytes(32));
-        $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
-        
-        // Lưu token vào database
-        if ($userModel->lưuTokenResetPassword($người_dùng['id'], $token, $expiry)) {
-            // Lưu token vào session để hiển thị (trong thực tế sẽ gửi email)
-            $_SESSION['reset_token'] = $token;
-            $_SESSION['thành_công'] = 'Link đặt lại mật khẩu đã được tạo! Vui lòng sử dụng link bên dưới trong vòng 1 giờ.';
-        } else {
-            $_SESSION['lỗi'] = 'Không thể tạo link đặt lại mật khẩu!';
-        }
-        
-        header('Location: index.php?controller=auth&action=forgot_password');
-        exit();
-    }
     
     /**
      * Hiển thị form đặt lại mật khẩu
