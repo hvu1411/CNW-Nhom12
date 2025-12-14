@@ -1,244 +1,242 @@
 <?php
-/**
- * Model Course - Quản lý khóa học
- */
-class Course
-{
-    // Kết nối cơ sở dữ liệu
-    private $kết_nối;
-    private $tên_bảng = 'courses';
-    
-    // Thuộc tính của course
-    public $id;
-    public $title;
-    public $description;
-    public $instructor_id;
-    public $category_id;
-    public $price;
-    public $duration_weeks;
-    public $level;
-    public $image;
-    public $created_at;
-    public $updated_at;
+class Course {
+    private $db;
 
-    /**
-     * Constructor
-     */
     public function __construct($db)
     {
-        $this->kết_nối = $db;
+        $this->db = $db;
     }
 
-    /**
-     * Tạo khóa học mới
-     */
-    public function tạo()
+    private function sanitizeText($text)
     {
-        $câu_truy_vấn = "INSERT INTO {$this->tên_bảng} 
-                        (title, description, instructor_id, category_id, price, duration_weeks, level, image) 
-                        VALUES (:title, :description, :instructor_id, :category_id, :price, :duration_weeks, :level, :image)";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $this->bindCommonParams($stmt);
-
-        return $stmt->execute();
+        return trim($text);
     }
 
     /**
-     * Lấy tất cả khóa học
+     * Lấy tất cả khóa học (kèm tên giảng viên + tên danh mục)
      */
     public function lấyTấtCả()
     {
-        $câu_truy_vấn = "SELECT c.id, c.title, c.description, c.price, c.duration_weeks, c.level, c.image, 
-                                u.fullname AS tên_giảng_viên, cat.name AS tên_danh_mục 
-                        FROM {$this->tên_bảng} c
-                        LEFT JOIN users u ON c.instructor_id = u.id
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        ORDER BY c.created_at DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->execute();
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
 
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Lấy khóa học theo ID
+     * Lấy danh sách khóa học theo danh mục
+     */
+    public function lấyTheoDanhMục($categoryId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.category_id = ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+
+        $stmt->execute([(int)$categoryId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy chi tiết khóa học theo ID (kèm tên giảng viên + tên danh mục)
      */
     public function lấyTheoId($id)
     {
-        $câu_truy_vấn = "SELECT c.id, c.title, c.description, c.price, c.duration_weeks, c.level, c.image, 
-                                u.fullname AS tên_giảng_viên, u.email AS email_giảng_viên, cat.name AS tên_danh_mục 
-                        FROM {$this->tên_bảng} c
-                        LEFT JOIN users u ON c.instructor_id = u.id
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        WHERE c.id = :id 
-                        LIMIT 1";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.id = ?
+            LIMIT 1
+        ");
 
+        $stmt->execute([(int)$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Lấy khóa học theo giảng viên
-     */
-    public function lấyTheoGiảngViên($instructor_id)
-    {
-        $câu_truy_vấn = "SELECT c.id, c.title, c.description, c.price, c.duration_weeks, c.level, c.image, 
-                                cat.name AS tên_danh_mục 
-                        FROM {$this->tên_bảng} c
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        WHERE c.instructor_id = :instructor_id 
-                        ORDER BY c.created_at DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':instructor_id', $instructor_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Lấy khóa học theo danh mục
-     */
-    public function lấyTheoDanhMục($category_id)
-    {
-        $câu_truy_vấn = "SELECT c.id, c.title, c.description, c.price, c.duration_weeks, c.level, c.image, 
-                                u.fullname AS tên_giảng_viên, cat.name AS tên_danh_mục 
-                        FROM {$this->tên_bảng} c
-                        LEFT JOIN users u ON c.instructor_id = u.id
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        WHERE c.category_id = :category_id 
-                        ORDER BY c.created_at DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':category_id', $category_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Tìm kiếm khóa học
+     * Tìm kiếm khóa học theo từ khóa
      */
     public function tìmKiếm($từ_khóa)
     {
-        $câu_truy_vấn = "SELECT c.id, c.title, c.description, c.price, c.duration_weeks, c.level, c.image, 
-                                u.fullname AS tên_giảng_viên, cat.name AS tên_danh_mục 
-                        FROM {$this->tên_bảng} c
-                        LEFT JOIN users u ON c.instructor_id = u.id
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        WHERE c.title LIKE :từ_khóa OR c.description LIKE :từ_khóa
-                        ORDER BY c.created_at DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $tìm_kiếm = "%{$từ_khóa}%";
-        $stmt->bindParam(':từ_khóa', $tìm_kiếm, PDO::PARAM_STR);
-        $stmt->execute();
+        $kw = '%' . $this->sanitizeText($từ_khóa) . '%';
 
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN users u ON c.instructor_id = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.title LIKE ? OR c.description LIKE ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+
+        $stmt->execute([$kw, $kw]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Lấy tất cả khóa học do một giảng viên tạo (theo instructor_id)
+    public function getAllCoursesByInstructor($instructorId)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM courses WHERE instructor_id = ?");
+        $stmt->execute([(int)$instructorId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Cập nhật khóa học
+     * Lấy danh sách khóa học theo giảng viên (kèm tên danh mục)
      */
-    public function cậpNhật()
+    public function lấyTheoGiảngViên($instructorId)
     {
-        $câu_truy_vấn = "UPDATE {$this->tên_bảng} 
-                        SET title = :title, description = :description, category_id = :category_id, 
-                            price = :price, duration_weeks = :duration_weeks, level = :level, image = :image 
-                        WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $this->bindCommonParams($stmt);
-        $stmt->bindParam(':id', $this->id, PDO::PARAM_INT);
-
-        return $stmt->execute();
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.instructor_id = ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+        $stmt->execute([(int)$instructorId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Xóa khóa học
+     * Đếm số lượng khóa học theo giảng viên
      */
-    public function xóa($id)
+    public function đếmKhóaHọcTheoGiảngViên($instructorId)
     {
-        $câu_truy_vấn = "DELETE FROM {$this->tên_bảng} WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
-        return $stmt->execute();
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM courses WHERE instructor_id = ?");
+        $stmt->execute([(int)$instructorId]);
+        return (int)$stmt->fetchColumn();
     }
 
     /**
-     * Hàm dùng chung để bind các tham số
+     * Xóa tất cả khóa học theo giảng viên
      */
-    private function bindCommonParams($stmt)
+    public function xóaTheoGiảngViên($instructorId)
     {
-        $stmt->bindParam(':title', $this->title, PDO::PARAM_STR);
-        $stmt->bindParam(':description', $this->description, PDO::PARAM_STR);
-        $stmt->bindParam(':instructor_id', $this->instructor_id, PDO::PARAM_INT);
-        $stmt->bindParam(':category_id', $this->category_id, PDO::PARAM_INT);
-        $stmt->bindParam(':price', $this->price, PDO::PARAM_STR);
-        $stmt->bindParam(':duration_weeks', $this->duration_weeks, PDO::PARAM_INT);
-        $stmt->bindParam(':level', $this->level, PDO::PARAM_STR);
-        $stmt->bindParam(':image', $this->image, PDO::PARAM_STR);
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE instructor_id = ?");
+        return $stmt->execute([(int)$instructorId]);
     }
-    
+
     /**
-     * Đếm số khóa học theo giảng viên
+     * Đếm tất cả khóa học
      */
-    public function đếmKhóaHọcTheoGiảngViên($instructor_id)
+    public function đếmTấtCả()
     {
-        $câu_truy_vấn = "SELECT COUNT(*) as total FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':instructor_id', $instructor_id);
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM courses");
         $stmt->execute();
-        
-        $result = $stmt->fetch();
-        return $result['total'] ?? 0;
+        return (int)$stmt->fetchColumn();
     }
-    
+
     /**
-     * Đếm số học viên của khóa học
+     * Đếm số học viên đăng ký một khóa học
      */
-    public function đếmHọcViên($course_id)
+    public function đếmHọcViên($courseId)
     {
-        $câu_truy_vấn = "SELECT COUNT(*) as total FROM enrollments WHERE course_id = :course_id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':course_id', $course_id);
-        $stmt->execute();
-        
-        $result = $stmt->fetch();
-        return $result['total'] ?? 0;
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM enrollments WHERE course_id = ?");
+        $stmt->execute([(int)$courseId]);
+        return (int)$stmt->fetchColumn();
     }
-    
-    /**
-     * Xóa tất cả khóa học của giảng viên
-     */
-    public function xóaTheoGiảngViên($instructor_id)
+
+    // Lấy thông tin chi tiết một khóa học theo id
+    public function getCourse($courseId)
     {
-        // Xóa enrollments của các khóa học
-        $câu_xóa_enrollment = "DELETE FROM enrollments WHERE course_id IN (SELECT id FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id)";
-        $stmt = $this->kết_nối->prepare($câu_xóa_enrollment);
-        $stmt->bindParam(':instructor_id', $instructor_id);
-        $stmt->execute();
-        
-        // Xóa lessons của các khóa học
-        $câu_xóa_lessons = "DELETE FROM lessons WHERE course_id IN (SELECT id FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id)";
-        $stmt = $this->kết_nối->prepare($câu_xóa_lessons);
-        $stmt->bindParam(':instructor_id', $instructor_id);
-        $stmt->execute();
-        
-        // Xóa khóa học
-        $câu_truy_vấn = "DELETE FROM " . $this->tên_bảng . " WHERE instructor_id = :instructor_id";
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':instructor_id', $instructor_id);
-        
-        return $stmt->execute();
+        return $this->lấyTheoId($courseId);
+    }
+
+    // Tạo mới một khóa học
+    public function createCourse($data)
+    {
+        $title       = $this->sanitizeText($data['title']);
+        $description = $this->sanitizeText($data['description']);
+
+        $stmt = $this->db->prepare("
+            INSERT INTO courses 
+            (title, description, instructor_id, category_id, price, duration_weeks, level, image, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+
+        return $stmt->execute([
+            $title,
+            $description,
+            (int)$data['instructor_id'],   
+            (int)$data['category_id'],     
+            (float)$data['price'],         
+            (int)$data['duration_weeks'],  
+            $this->sanitizeText($data['level']), 
+            $this->sanitizeText($data['image'])  
+        ]);
+    }
+
+    // Cập nhật thông tin một khóa học
+    public function updateCourse($courseId, $data)
+    {
+        $title       = $this->sanitizeText($data['title']);
+        $description = $this->sanitizeText($data['description']);
+
+        $stmt = $this->db->prepare("
+            UPDATE courses 
+            SET title = ?, 
+                description = ?, 
+                category_id = ?, 
+                price = ?, 
+                duration_weeks = ?, 
+                level = ?, 
+                image = ?, 
+                updated_at = NOW() 
+            WHERE id = ? AND instructor_id = ?
+        ");
+
+        return $stmt->execute([
+            $title,
+            $description,
+            (int)$data['category_id'],
+            (float)$data['price'],
+            (int)$data['duration_weeks'],
+            $this->sanitizeText($data['level']),
+            $this->sanitizeText($data['image']),
+            (int)$courseId,
+            (int)$data['instructor_id']
+        ]);
+    }
+
+    // Xóa một khóa học 
+    public function deleteCourse($courseId, $instructorId)
+    {
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE id = ? AND instructor_id = ?");
+        return $stmt->execute([(int)$courseId, (int)$instructorId]);
+    }
+
+    /**
+     * Xóa một khóa học (phiên bản admin)
+     */
+    public function xóa($courseId)
+    {
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE id = ?");
+        return $stmt->execute([(int)$courseId]);
     }
 }

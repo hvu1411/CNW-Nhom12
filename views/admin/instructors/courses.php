@@ -44,6 +44,7 @@ require_once 'views/layouts/header.php';
                     </thead>
                     <tbody>
                         <?php foreach ($danh_sách_khóa_học as $kh): ?>
+                            <?php $status = $kh['status'] ?? 1; ?>
                             <tr>
                                 <td><?php echo $kh['id']; ?></td>
                                 <td>
@@ -64,7 +65,7 @@ require_once 'views/layouts/header.php';
                                 <td><?php echo number_format($kh['price'], 0, ',', '.'); ?> VNĐ</td>
                                 <td><?php echo $kh['số_học_viên'] ?? 0; ?></td>
                                 <td>
-                                    <?php if ($kh['status'] == 1): ?>
+                                    <?php if ($status == 1): ?>
                                         <span class="status-active">Hoạt động</span>
                                     <?php else: ?>
                                         <span class="status-inactive">Ẩn</span>

@@ -6,6 +6,7 @@ class Enrollment
 {
     // Kết nối cơ sở dữ liệu
     private $kết_nối;
+    private $db;
     private $tên_bảng = 'enrollments';
     
     // Thuộc tính của enrollment
@@ -21,135 +22,110 @@ class Enrollment
      */
     public function __construct($db)
     {
+        $this->db = $db;
         $this->kết_nối = $db;
     }
 
     /**
-     * Đăng ký khóa học
+     * Kiểm tra học viên đã đăng ký khóa học hay chưa
+     */
+    public function kiểmTraĐãĐăngKý($courseId, $studentId)
+    {
+        $stmt = $this->db->prepare(
+            "SELECT 1 FROM enrollments WHERE course_id = ? AND student_id = ? LIMIT 1"
+        );
+        $stmt->execute([(int)$courseId, (int)$studentId]);
+        return (bool)$stmt->fetchColumn();
+    }
+
+    /**
+     * Tạo bản ghi đăng ký (dùng các thuộc tính đã set)
      */
     public function đăngKý()
     {
-        $câu_truy_vấn = "INSERT INTO {$this->tên_bảng} 
-                        (course_id, student_id, status, progress) 
-                        VALUES (:course_id, :student_id, :status, :progress)";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $this->bindCommonParams($stmt);
+        $stmt = $this->db->prepare(
+            "INSERT INTO enrollments (course_id, student_id, enrolled_date, status, progress) VALUES (?, ?, NOW(), ?, ?)"
+        );
 
-        return $stmt->execute();
+        return $stmt->execute([
+            (int)$this->course_id,
+            (int)$this->student_id,
+            (string)($this->status ?? 'active'),
+            (int)($this->progress ?? 0)
+        ]);
     }
 
     /**
-     * Kiểm tra đã đăng ký chưa
+     * Lấy danh sách khóa học của học viên
      */
-    public function kiểmTraĐãĐăngKý($course_id, $student_id)
+    public function lấyKhóaHọcCủaHọcViên($studentId)
     {
-        $câu_truy_vấn = "SELECT id FROM {$this->tên_bảng} 
-                        WHERE course_id = :course_id AND student_id = :student_id 
-                        LIMIT 1";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':course_id', $course_id, PDO::PARAM_INT);
-        $stmt->bindParam(':student_id', $student_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
-    }
-
-    /**
-     * Lấy khóa học của học viên
-     */
-    public function lấyKhóaHọcCủaHọcViên($student_id)
-    {
-        $câu_truy_vấn = "SELECT e.id, e.enrolled_date, e.status, e.progress, 
-                                c.title, c.description, c.image, c.level, 
-                                u.fullname AS tên_giảng_viên, cat.name AS tên_danh_mục
-                        FROM {$this->tên_bảng} e
-                        INNER JOIN courses c ON e.course_id = c.id
-                        LEFT JOIN users u ON c.instructor_id = u.id
-                        LEFT JOIN categories cat ON c.category_id = cat.id
-                        WHERE e.student_id = :student_id
-                        ORDER BY e.enrolled_date DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':student_id', $student_id, PDO::PARAM_INT);
-        $stmt->execute();
-
+        $sql = "
+            SELECT 
+                c.id as course_id,
+                c.title,
+                c.description,
+                c.instructor_id,
+                c.category_id,
+                c.price,
+                c.duration_weeks,
+                c.level,
+                c.image,
+                c.created_at,
+                c.updated_at,
+                e.enrolled_date,
+                e.status,
+                e.progress,
+                e.id as enrollment_id,
+                COALESCE(u.fullname, u.username, '') as tên_giảng_viên
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE e.student_id = ?
+            ORDER BY e.enrolled_date DESC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([(int)$studentId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Lấy học viên của khóa học
-     */
-    public function lấyHọcViênCủaKhóaHọc($course_id)
+    // Lấy danh sách học viên đăng ký của 1 khóa học
+    public function getStudentsByCourse($courseId)
     {
-        $câu_truy_vấn = "SELECT e.id, e.enrolled_date, e.status, e.progress, 
-                                u.fullname, u.email, u.username
-                        FROM {$this->tên_bảng} e
-                        INNER JOIN users u ON e.student_id = u.id
-                        WHERE e.course_id = :course_id
-                        ORDER BY e.enrolled_date DESC";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':course_id', $course_id, PDO::PARAM_INT);
-        $stmt->execute();
-
+        // Join enrollments với users để lấy thông tin tài khoản
+        $sql = "
+            SELECT 
+                e.id,
+                e.course_id,
+                e.student_id,
+                e.enrolled_date,
+                e.status,
+                e.progress,
+                u.fullname,
+                u.email,
+                u.username
+            FROM enrollments e
+            JOIN users u ON e.student_id = u.id
+            WHERE e.course_id = ?
+            ORDER BY u.fullname ASC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([(int)$courseId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Cập nhật tiến độ
-     */
-    public function cậpNhậtTiếnĐộ($enrollment_id, $tiến_độ)
+    // Cập nhật trạng thái và tiến độ cho 1 bản ghi enroll
+    public function updateProgress($enrollmentId, $status, $progress)
     {
-        $câu_truy_vấn = "UPDATE {$this->tên_bảng} 
-                        SET progress = :progress 
-                        WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':progress', $tiến_độ, PDO::PARAM_INT);
-        $stmt->bindParam(':id', $enrollment_id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    /**
-     * Cập nhật trạng thái
-     */
-    public function cậpNhậtTrạngThái($enrollment_id, $trạng_thái)
-    {
-        $câu_truy_vấn = "UPDATE {$this->tên_bảng} 
-                        SET status = :status 
-                        WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':status', $trạng_thái, PDO::PARAM_STR);
-        $stmt->bindParam(':id', $enrollment_id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    /**
-     * Hủy đăng ký
-     */
-    public function hủyĐăngKý($enrollment_id)
-    {
-        $câu_truy_vấn = "DELETE FROM {$this->tên_bảng} WHERE id = :id";
-        
-        $stmt = $this->kết_nối->prepare($câu_truy_vấn);
-        $stmt->bindParam(':id', $enrollment_id, PDO::PARAM_INT);
-
-        return $stmt->execute();
-    }
-
-    /**
-     * Hàm dùng chung để bind các tham số
-     */
-    private function bindCommonParams($stmt)
-    {
-        $stmt->bindParam(':course_id', $this->course_id, PDO::PARAM_INT);
-        $stmt->bindParam(':student_id', $this->student_id, PDO::PARAM_INT);
-        $stmt->bindParam(':status', $this->status, PDO::PARAM_STR);
-        $stmt->bindParam(':progress', $this->progress, PDO::PARAM_INT);
+        $stmt = $this->db->prepare("
+            UPDATE enrollments
+            SET status = ?, progress = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([
+            $status,
+            (int)$progress,
+            (int)$enrollmentId
+        ]);
     }
 }

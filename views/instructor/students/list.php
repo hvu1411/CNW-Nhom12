@@ -1,48 +1,47 @@
-<?php
-$tiêu_đề = "Danh sách học viên - Hệ thống Quản lý Khóa học Online";
-require_once 'views/layouts/header.php';
-?>
+<h2>Học viên đăng ký khóa: <?= htmlspecialchars($course['title'], ENT_QUOTES, 'UTF-8') ?></h2>
 
-<div class="container">
-    <div class="dashboard">
-        <?php require_once 'views/layouts/sidebar.php'; ?>
-        
-        <div class="content">
-            <h1>Danh sách học viên</h1>
-            <h2>Khóa học: <?php echo htmlspecialchars($khóa_học['title']); ?></h2>
-            
-            <?php if (!empty($danh_sách_học_viên)): ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Tên đăng nhập</th>
-                            <th>Họ tên</th>
-                            <th>Email</th>
-                            <th>Ngày đăng ký</th>
-                            <th>Tiến độ</th>
-                            <th>Trạng thái</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($danh_sách_học_viên as $học_viên): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($học_viên['username']); ?></td>
-                                <td><?php echo htmlspecialchars($học_viên['fullname']); ?></td>
-                                <td><?php echo htmlspecialchars($học_viên['email']); ?></td>
-                                <td><?php echo date('d/m/Y', strtotime($học_viên['enrolled_date'])); ?></td>
-                                <td><?php echo $học_viên['progress']; ?>%</td>
-                                <td><?php echo htmlspecialchars($học_viên['status']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>Chưa có học viên nào đăng ký.</p>
-            <?php endif; ?>
-            
-            <a href="index.php?controller=instructor&action=manage_course&id=<?php echo $_GET['course_id']; ?>" class="btn btn-secondary">Quay lại</a>
-        </div>
-    </div>
-</div>
+<?php if (!empty($students)): ?>
+<table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+        <th>Họ tên</th>
+        <th>Email</th>
+        <th>Ngày đăng ký</th>
+        <th>Trạng thái</th>
+        <th>Tiến độ (%)</th>
+        <th>Cập nhật</th>
+    </tr>
+    <?php foreach ($students as $s): ?>
+    <tr>
+        <td><?= htmlspecialchars($s['fullname'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= htmlspecialchars($s['email'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= htmlspecialchars($s['enrolled_date'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= htmlspecialchars($s['status'], ENT_QUOTES, 'UTF-8') ?></td>
+        <td><?= (int)$s['progress'] ?></td>
+        <td>
+            <!-- Form cập nhật trạng thái và tiến độ -->
+            <form method="post" action="index.php?controller=enrollment&action=updateProgress">
+                <input type="hidden" name="course_id" value="<?= (int)$course['id'] ?>">
+                <input type="hidden" name="enrollment_id" value="<?= (int)$s['id'] ?>">
 
-<?php require_once 'views/layouts/footer.php'; ?>
+                <select name="status">
+                    <option value="active"    <?= $s['status'] === 'active' ? 'selected' : '' ?>>active</option>
+                    <option value="completed" <?= $s['status'] === 'completed' ? 'selected' : '' ?>>completed</option>
+                    <option value="dropped"   <?= $s['status'] === 'dropped' ? 'selected' : '' ?>>dropped</option>
+                </select>
+
+                <input type="number" name="progress"
+                       value="<?= (int)$s['progress'] ?>" min="0" max="100" style="width:60px;">
+
+                <button type="submit">Lưu</button>
+            </form>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+</table>
+<?php else: ?>
+<p>Chưa có học viên đăng ký khóa này.</p>
+<?php endif; ?>
+
+<p>
+    <a href="index.php?controller=course&action=list">← Quay lại danh sách khóa học</a>
+</p>
