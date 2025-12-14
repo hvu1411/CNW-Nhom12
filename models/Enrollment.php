@@ -55,6 +55,40 @@ class Enrollment
         ]);
     }
 
+    /**
+     * Lấy danh sách khóa học của học viên
+     */
+    public function lấyKhóaHọcCủaHọcViên($studentId)
+    {
+        $sql = "
+            SELECT 
+                c.id as course_id,
+                c.title,
+                c.description,
+                c.instructor_id,
+                c.category_id,
+                c.price,
+                c.duration_weeks,
+                c.level,
+                c.image,
+                c.created_at,
+                c.updated_at,
+                e.enrolled_date,
+                e.status,
+                e.progress,
+                e.id as enrollment_id,
+                COALESCE(u.fullname, u.username, '') as tên_giảng_viên
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN users u ON c.instructor_id = u.id
+            WHERE e.student_id = ?
+            ORDER BY e.enrolled_date DESC
+        ";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([(int)$studentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Lấy danh sách học viên đăng ký của 1 khóa học
     public function getStudentsByCourse($courseId)
     {

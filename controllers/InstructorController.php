@@ -1,10 +1,17 @@
 <?php
 class InstructorController
 {
+    private $db;
+
     public function __construct($db)
     {
         $this->db = $db;
-        session_start();
+        
+        // Kiểm tra session đã được khởi động chưa
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         $this->ensureInstructor();
     }
 
@@ -20,8 +27,9 @@ class InstructorController
     // Action hiển thị trang dashboard giảng viên
     public function dashboard()
     {
-        include 'views/instructor/dashboard.php';
+        require_once 'views/instructor/dashboard.php';
     }
+    
     public function myCourses()
     {
         header('Location: index.php?controller=course&action=list');
