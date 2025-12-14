@@ -17,7 +17,7 @@ class Course {
      */
     public function lấyTấtCả()
     {
-        $stmt = $this->db->prepare("\
+        $stmt = $this->db->prepare("
             SELECT 
                 c.*,
                 COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
@@ -37,7 +37,7 @@ class Course {
      */
     public function lấyTheoDanhMục($categoryId)
     {
-        $stmt = $this->db->prepare("\
+        $stmt = $this->db->prepare("
             SELECT 
                 c.*,
                 COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
@@ -58,7 +58,7 @@ class Course {
      */
     public function lấyTheoId($id)
     {
-        $stmt = $this->db->prepare("\
+        $stmt = $this->db->prepare("
             SELECT 
                 c.*,
                 COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
@@ -81,7 +81,7 @@ class Course {
     {
         $kw = '%' . $this->sanitizeText($từ_khóa) . '%';
 
-        $stmt = $this->db->prepare("\
+        $stmt = $this->db->prepare("
             SELECT 
                 c.*,
                 COALESCE(u.fullname, u.username, '') AS `tên_giảng_viên`,
@@ -103,6 +103,63 @@ class Course {
         $stmt = $this->db->prepare("SELECT * FROM courses WHERE instructor_id = ?");
         $stmt->execute([(int)$instructorId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách khóa học theo giảng viên (kèm tên danh mục)
+     */
+    public function lấyTheoGiảngViên($instructorId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.*,
+                COALESCE(cat.name, '') AS `tên_danh_mục`
+            FROM courses c
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.instructor_id = ?
+            ORDER BY c.created_at DESC, c.id DESC
+        ");
+        $stmt->execute([(int)$instructorId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Đếm số lượng khóa học theo giảng viên
+     */
+    public function đếmKhóaHọcTheoGiảngViên($instructorId)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM courses WHERE instructor_id = ?");
+        $stmt->execute([(int)$instructorId]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Xóa tất cả khóa học theo giảng viên
+     */
+    public function xóaTheoGiảngViên($instructorId)
+    {
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE instructor_id = ?");
+        return $stmt->execute([(int)$instructorId]);
+    }
+
+    /**
+     * Đếm tất cả khóa học
+     */
+    public function đếmTấtCả()
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM courses");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Đếm số học viên đăng ký một khóa học
+     */
+    public function đếmHọcViên($courseId)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM enrollments WHERE course_id = ?");
+        $stmt->execute([(int)$courseId]);
+        return (int)$stmt->fetchColumn();
     }
 
     // Lấy thông tin chi tiết một khóa học theo id
@@ -172,5 +229,14 @@ class Course {
     {
         $stmt = $this->db->prepare("DELETE FROM courses WHERE id = ? AND instructor_id = ?");
         return $stmt->execute([(int)$courseId, (int)$instructorId]);
+    }
+
+    /**
+     * Xóa một khóa học (phiên bản admin)
+     */
+    public function xóa($courseId)
+    {
+        $stmt = $this->db->prepare("DELETE FROM courses WHERE id = ?");
+        return $stmt->execute([(int)$courseId]);
     }
 }
