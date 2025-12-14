@@ -13,6 +13,11 @@ class StudentController
     {
         $this->db = $db;
         
+        // Start session nếu chưa có
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         // Kiểm tra quyền học viên
         $this->checkStudentRole();
         
@@ -37,9 +42,10 @@ class StudentController
      */
     private function loadModels()
     {
-        require_once 'models/Enrollment.php';
-        require_once 'models/Course.php';
-        require_once 'models/Lesson.php';
+        // QUAN TRỌNG: Phải require_once các file model trước khi khởi tạo
+        require_once __DIR__ . '/../models/Enrollment.php';
+        require_once __DIR__ . '/../models/Course.php';
+        require_once __DIR__ . '/../models/Lesson.php';
         
         $this->enrollmentModel = new Enrollment($this->db);
         $this->courseModel = new Course($this->db);
@@ -53,7 +59,7 @@ class StudentController
     {
         $danh_sách_khóa_học = $this->enrollmentModel->lấyKhóaHọcCủaHọcViên($_SESSION['user_id']);
         
-        require_once 'views/student/dashboard.php';
+        require_once __DIR__ . '/../views/student/dashboard.php';
     }
 
     /**
@@ -63,7 +69,7 @@ class StudentController
     {
         $danh_sách_khóa_học = $this->enrollmentModel->lấyKhóaHọcCủaHọcViên($_SESSION['user_id']);
         
-        require_once 'views/student/my_courses.php';
+        require_once __DIR__ . '/../views/student/my_courses.php';
     }
 
     /**
@@ -89,6 +95,6 @@ class StudentController
         $khóa_học = $this->courseModel->lấyTheoId($course_id);
         $danh_sách_bài_học = $this->lessonModel->lấyTheoKhóaHọc($course_id);
         
-        require_once 'views/student/course_progress.php';
+        require_once __DIR__ . '/../views/student/course_progress.php';
     }
 }

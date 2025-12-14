@@ -11,8 +11,16 @@ class EnrollmentController
     public function __construct($db)
     {
         $this->db = $db;
-        require_once 'models/Enrollment.php';
-        require_once 'models/Course.php';
+        
+        // Start session nếu chưa có
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Load models với đường dẫn chính xác
+        require_once __DIR__ . '/../models/Enrollment.php';
+        require_once __DIR__ . '/../models/Course.php';
+        
         $this->enrollmentModel = new Enrollment($this->db);
         $this->courseModel = new Course($this->db);
     }
@@ -62,7 +70,7 @@ class EnrollmentController
         $course = $this->ensureCourseOwner($courseId);
         $students = $this->enrollmentModel->getStudentsByCourse($courseId);
 
-        include 'views/instructor/students/list.php';
+        include __DIR__ . '/../views/instructor/students/list.php';
     }
 
     /**

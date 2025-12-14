@@ -21,10 +21,11 @@ class CourseController
      */
     private function loadModels()
     {
-        require_once 'models/Course.php';
-        require_once 'models/Category.php';
-        require_once 'models/Lesson.php';
-        require_once 'models/Enrollment.php';
+        // QUAN TRỌNG: Sử dụng __DIR__ để đảm bảo đường dẫn chính xác
+        require_once __DIR__ . '/../models/Course.php';
+        require_once __DIR__ . '/../models/Category.php';
+        require_once __DIR__ . '/../models/Lesson.php';
+        require_once __DIR__ . '/../models/Enrollment.php';
         
         $this->courseModel = new Course($this->db);
         $this->categoryModel = new Category($this->db);
@@ -46,7 +47,7 @@ class CourseController
         
         $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
         
-        require_once 'views/courses/index.php';
+        require_once __DIR__ . '/../views/courses/index.php';
     }
 
     /**
@@ -54,6 +55,11 @@ class CourseController
      */
     public function detail()
     {
+        // Start session nếu chưa có (cần để kiểm tra đăng nhập)
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         $id = $_GET['id'] ?? null;
         
         if (!$id || !is_numeric($id)) {
@@ -77,7 +83,7 @@ class CourseController
             ? $this->enrollmentModel->kiểmTraĐãĐăngKý($id, $_SESSION['user_id'])
             : false;
         
-        require_once 'views/courses/detail.php';
+        require_once __DIR__ . '/../views/courses/detail.php';
     }
 
     /**
@@ -93,6 +99,6 @@ class CourseController
         
         $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
         
-        require_once 'views/courses/search.php';
+        require_once __DIR__ . '/../views/courses/search.php';
     }
 }

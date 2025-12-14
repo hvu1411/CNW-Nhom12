@@ -17,8 +17,8 @@ class HomeController
     public function index()
     {
         // Lấy danh sách khóa học
-        require_once 'models/Course.php';
-        require_once 'models/Category.php';
+        require_once __DIR__ . '/../models/Course.php';
+        require_once __DIR__ . '/../models/Category.php';
         
         $courseModel = new Course($this->db);
         $categoryModel = new Category($this->db);
@@ -27,6 +27,6 @@ class HomeController
         $danh_sách_danh_mục = $categoryModel->lấyTấtCả();
         
         // Load view
-        require_once 'views/home/index.php';
+        require_once __DIR__ . '/../views/home/index.php';
     }
 }

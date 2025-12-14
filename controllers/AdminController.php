@@ -5,33 +5,17 @@
 class AdminController
 {
     private $db;
-    private $userModel;
-    private $courseModel;
-    private $categoryModel;
     
     public function __construct($db)
     {
         $this->db = $db;
-        // Ensure session started
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
+        
         // Kiểm tra quyền admin
         if (!isset($_SESSION['đã_đăng_nhập']) || $_SESSION['role'] != 2) {
             $_SESSION['lỗi'] = 'Bạn không có quyền truy cập trang này!';
             header('Location: index.php');
             exit();
         }
-
-        // Require and instantiate commonly used models once to reduce include/object creation overhead
-        require_once __DIR__ . '/../models/User.php';
-        require_once __DIR__ . '/../models/Course.php';
-        require_once __DIR__ . '/../models/Category.php';
-
-        $this->userModel = new User($this->db);
-        $this->courseModel = new Course($this->db);
-        $this->categoryModel = new Category($this->db);
     }
     
     /**
@@ -39,21 +23,20 @@ class AdminController
      */
     public function dashboard()
     {
-        // Use efficient COUNT methods where possible to avoid fetching entire result sets
-        $tổng_người_dùng = $this->userModel->đếmTấtCả();
-        $tổng_giảng_viên = $this->userModel->đếmTheoVaiTrò(1);
-        $tổng_học_viên = $this->userModel->đếmTheoVaiTrò(0);
-
-        // For courses, use a COUNT query directly via the course model if available, otherwise run a lightweight query
-        if (method_exists($this->courseModel, 'đếmTấtCả')) {
-            $tổng_khóa_học = $this->courseModel->đếmTấtCả();
-        } else {
-            $stmt = $this->db->prepare("SELECT COUNT(*) FROM courses");
-            $stmt->execute();
-            $tổng_khóa_học = (int) $stmt->fetchColumn();
-        }
-
-        require_once __DIR__ . '/../views/admin/dashboard.php';
+        require_once 'models/User.php';
+        require_once 'models/Course.php';
+        require_once 'models/Enrollment.php';
+        
+        $userModel = new User($this->db);
+        $courseModel = new Course($this->db);
+        
+        // Thống kê
+        $tổng_người_dùng = count($userModel->lấyTấtCả());
+        $tổng_giảng_viên = count($userModel->lấyTheoVaiTrò(1));
+        $tổng_học_viên = count($userModel->lấyTheoVaiTrò(0));
+        $tổng_khóa_học = count($courseModel->lấyTấtCả());
+        
+        require_once 'views/admin/dashboard.php';
     }
     
     /**
@@ -61,8 +44,12 @@ class AdminController
      */
     public function manage_users()
     {
-        $danh_sách_người_dùng = $this->userModel->lấyTấtCả();
-        require_once __DIR__ . '/../views/admin/users/manage.php';
+        require_once 'models/User.php';
+        
+        $userModel = new User($this->db);
+        $danh_sách_người_dùng = $userModel->lấyTấtCả();
+        
+        require_once 'views/admin/users/manage.php';
     }
     
     /**
@@ -73,7 +60,10 @@ class AdminController
         $id = $_GET['id'] ?? null;
         
         if ($id && $id != $_SESSION['user_id']) {
-            if ($this->userModel->xóa($id)) {
+            require_once 'models/User.php';
+            
+            $userModel = new User($this->db);
+            if ($userModel->xóa($id)) {
                 $_SESSION['thành_công'] = 'Xóa người dùng thành công!';
             } else {
                 $_SESSION['lỗi'] = 'Xóa người dùng thất bại!';
@@ -89,8 +79,12 @@ class AdminController
      */
     public function list_categories()
     {
-        $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
-        require_once __DIR__ . '/../views/admin/categories/list.php';
+        require_once 'models/Category.php';
+        
+        $categoryModel = new Category($this->db);
+        $danh_sách_danh_mục = $categoryModel->lấyTấtCả();
+        
+        require_once 'views/admin/categories/list.php';
     }
     
     /**
@@ -99,10 +93,13 @@ class AdminController
     public function create_category()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->categoryModel->name = $_POST['name'] ?? '';
-            $this->categoryModel->description = $_POST['description'] ?? '';
-
-            if ($this->categoryModel->tạo()) {
+            require_once 'models/Category.php';
+            
+            $categoryModel = new Category($this->db);
+            $categoryModel->name = $_POST['name'] ?? '';
+            $categoryModel->description = $_POST['description'] ?? '';
+            
+            if ($categoryModel->tạo()) {
                 $_SESSION['thành_công'] = 'Tạo danh mục thành công!';
                 header('Location: index.php?controller=admin&action=list_categories');
                 exit();
@@ -110,7 +107,8 @@ class AdminController
                 $_SESSION['lỗi'] = 'Tạo danh mục thất bại!';
             }
         }
-        require_once __DIR__ . '/../views/admin/categories/create.php';
+        
+        require_once 'views/admin/categories/create.php';
     }
     
     /**
@@ -125,7 +123,10 @@ class AdminController
             exit();
         }
         
-        $categoryModel = $this->categoryModel;
+        require_once 'models/Category.php';
+        
+        $categoryModel = new Category($this->db);
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $categoryModel->id = $id;
             $categoryModel->name = $_POST['name'] ?? '';
@@ -141,7 +142,7 @@ class AdminController
         }
         
         $danh_mục = $categoryModel->lấyTheoId($id);
-        require_once __DIR__ . '/../views/admin/categories/edit.php';
+        require_once 'views/admin/categories/edit.php';
     }
     
     /**
@@ -152,12 +153,16 @@ class AdminController
         $id = $_GET['id'] ?? null;
         
         if ($id) {
-            if ($this->categoryModel->xóa($id)) {
+            require_once 'models/Category.php';
+            
+            $categoryModel = new Category($this->db);
+            if ($categoryModel->xóa($id)) {
                 $_SESSION['thành_công'] = 'Xóa danh mục thành công!';
             } else {
                 $_SESSION['lỗi'] = 'Xóa danh mục thất bại! Có thể danh mục đang được sử dụng.';
             }
         }
+        
         header('Location: index.php?controller=admin&action=list_categories');
         exit();
     }
@@ -167,11 +172,19 @@ class AdminController
      */
     public function statistics()
     {
-        $danh_sách_người_dùng = $this->userModel->lấyTấtCả();
-        $danh_sách_khóa_học = $this->courseModel->lấyTấtCả();
-        $danh_sách_danh_mục = $this->categoryModel->lấyTấtCả();
-
-        require_once __DIR__ . '/../views/admin/reports/statistics.php';
+        require_once 'models/User.php';
+        require_once 'models/Course.php';
+        require_once 'models/Category.php';
+        
+        $userModel = new User($this->db);
+        $courseModel = new Course($this->db);
+        $categoryModel = new Category($this->db);
+        
+        $danh_sách_người_dùng = $userModel->lấyTấtCả();
+        $danh_sách_khóa_học = $courseModel->lấyTấtCả();
+        $danh_sách_danh_mục = $categoryModel->lấyTấtCả();
+        
+        require_once 'views/admin/reports/statistics.php';
     }
     
     // ========== QUẢN LÝ GIẢNG VIÊN ==========
@@ -189,9 +202,9 @@ class AdminController
         
         $danh_sách_giảng_viên = $userModel->lấyTheoVaiTrò(1);
         
-        // Đếm số khóa học của mỗi giảng viên
-        foreach ($danh_sách_giảng_viên as &$gv) {
-            $gv['số_khóa_học'] = $courseModel->đếmKhóaHọcTheoGiảngViên($gv['id']);
+        // Đếm số khóa học của mỗi giảng viên (không dùng tham chiếu để tránh side-effect)
+        foreach ($danh_sách_giảng_viên as $i => $gv) {
+            $danh_sách_giảng_viên[$i]['số_khóa_học'] = $courseModel->đếmKhóaHọcTheoGiảngViên($gv['id']);
         }
         
         require_once 'views/admin/instructors/list.php';
@@ -235,12 +248,18 @@ class AdminController
             $userModel->role = 1; // Giảng viên
             
             if ($userModel->đăngKý()) {
-                // Cập nhật số điện thoại nếu có
-                if (!empty($_POST['phone'])) {
-                    $lastId = $this->db->lastInsertId();
-                    $userModel->cậpNhậtProfile($lastId, $_POST['fullname'], $_POST['email'], $_POST['phone']);
+                // Lấy lại bản ghi vừa tạo bằng email (an toàn hơn lastInsertId)
+                $created = $userModel->lấyTheoEmail($_POST['email']);
+                if (!$created) {
+                    // Dự phòng: thử lấy theo username
+                    $created = $userModel->lấyTheoUsername($_POST['username']);
                 }
-                
+
+                // Cập nhật số điện thoại nếu có và nếu bản ghi tồn tại
+                if (!empty($_POST['phone']) && $created && isset($created['id'])) {
+                    $userModel->cậpNhậtProfile((int)$created['id'], $_POST['fullname'], $_POST['email'], $_POST['phone']);
+                }
+
                 $_SESSION['thành_công'] = 'Tạo giảng viên thành công!';
                 header('Location: index.php?controller=admin&action=list_instructors');
                 exit();
